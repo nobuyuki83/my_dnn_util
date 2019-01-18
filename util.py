@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-import cv2, math, hashlib, os, numpy, argparse, json
+import cv2, math, hashlib, os, numpy, argparse, json, time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -125,17 +125,19 @@ def draw_annotation_bbox(dict_info):
     drawRect(dict_info["bbox"],color=(255,0,0),width=1)
 
 
-def draw_annotation_segmentation(dict_info):
+def draw_annotation_segmentation(dict_info,selected_loop:int):
   if 'segmentation' in dict_info:
-    for pl in dict_info['segmentation']:
-      drawPolyline(pl,color=(255,255,255),width=1)
-      ###
-      glColor3d(0.0,0.0,0.0)
-      glPointSize(5)
+    for iloop,loop in enumerate(dict_info['segmentation']):
+      drawPolyline(loop,color=(1,1,1),width=1)
+      if iloop == selected_loop:
+        glColor3d(1.0,0.0,0.0)
+      else:
+        glColor3d(0.0,0.0,1.0)
+      glPointSize(4)
       glBegin(GL_POINTS)
-      for ip in range(len(pl)//2):
-        x = pl[ip*2+0]
-        y = pl[ip*2+1]
+      for ip in range(len(loop)//2):
+        x = loop[ip*2+0]
+        y = loop[ip*2+1]
         glVertex2d(x,-y)
       glEnd()
 
@@ -251,6 +253,11 @@ def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop):
       np_sgm = np_sgm.reshape((-1,2))
       cv2.polylines(np_img0, [np_sgm], True, (0, 255, 255))
 
+def cv2_get_numpy_loop_array(list_loop):
+  list_loop_np = []
+  for loop in list_loop:
+    list_loop_np.append(numpy.array(loop, dtype=int).reshape(-1, 2))
+  return list_loop_np
 
 def coco_get_image_annotation(path_json):
   dict_info = json.load(open(path_json))
@@ -321,6 +328,22 @@ def coco_get_dict_info(imginfo,anno,list_keypoint_name):
     dict_out['person0'][list_keypoint_name[ip]] = [x0, y0, keypoints[ip * 3 + 2]]
   return dict_out
 
+
+def arrange_old_new(list_path_img):
+  dict_bn_time = {}
+  for path_img in list_path_img:
+    path_json = path_img.rsplit(".",1)[0]+".json"
+    if not os.path.isfile(path_json):
+      dict_bn_time[path_img] = -time.time()
+      continue
+    with open(path_json,"r") as file0:
+      dict_info0 = json.load(file0)
+      if "saved_time" in dict_info0:
+        dict_bn_time[path_img] = -dict_info0["saved_time"]
+      else:
+        dict_bn_time[path_img] = -time.time()
+  list0 = sorted(dict_bn_time.items(), key=lambda x:x[1])
+  return list(map(lambda x:x[0],list0))
 
 ############################################################
 
@@ -411,6 +434,22 @@ def view_batch(np_in, np_tg, nstride):
 
 ##################################################################################################
 
+def get_segmentation_map(net_seg, np_img, mag):
+  npix = net_seg.npix
+  net_seg.eval()
+  np_in = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))
+  np_in = get_image_npix(np_in, npix, 1)
+  np_in = np_in.reshape([1] + list(np_in.shape))
+  ####
+  pt_in = torch.from_numpy(numpy.moveaxis(np_in, 3, 1).astype(numpy.float32) / 255.0)
+  with torch.no_grad():
+    pt_out0 = net_seg.forward(pt_in)
+  np_out0 = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
+#    view_batch(np_in,np_out0,self.net_cpm0.nstride)
+  ####
+  np_out0 = np_out0.reshape(np_out0.shape[1:])
+  np_in = np_in.reshape(np_in.shape[1:])
+  return np_in,np_out0
 
 
 def get_peaks(list_key,np_out0,mag):
