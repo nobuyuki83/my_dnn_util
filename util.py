@@ -122,9 +122,9 @@ def draw_annotation_bbox(dict_info):
     drawRect(dict_info["bbox"],color=(255,0,0),width=1)
 
 
-def draw_annotation_segmentation(dict_info,selected_loop:int):
-  if 'segmentation' in dict_info:
-    for iloop,loop in enumerate(dict_info['segmentation']):
+def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
+  if name_seg in dict_info:
+    for iloop,loop in enumerate(dict_info[name_seg]):
       drawPolyline(loop,color=(1,1,1),width=1)
       if iloop == selected_loop:
         glColor3d(1.0,0.0,0.0)
@@ -222,6 +222,43 @@ def is_dir(dirname):
     raise argparse.ArgumentTypeError(msg)
   else:
     return dirname
+
+def path_img_same_name(path_json:str):
+  if os.path.isfile(path_json.rsplit(".", 1)[0] + ".jpg"):
+    path_img = path_json.rsplit(".", 1)[0] + ".jpg"
+  else:
+    path_img = path_json.rsplit(".", 1)[0] + ".png"
+  return path_img
+
+def pick_loop(xy1:list,key:str,dict_prsn:dict):
+  iloop_selected = -1
+  ivtx_selected = -1
+  if not key in dict_prsn:
+    return
+  min_len = -1.0
+  for iloop, loop in enumerate(dict_prsn[key]):
+    for ivtx in range(len(loop) // 2):
+      x0 = loop[ivtx * 2 + 0]
+      y0 = loop[ivtx * 2 + 1]
+      len0 = math.sqrt((x0 - xy1[0]) * (x0 - xy1[0]) + (y0 - xy1[1]) * (y0 - xy1[1]))
+      if min_len < 0 or len0 < min_len:
+        min_len = len0
+        iloop_selected = iloop
+        ivtx_selected = ivtx
+  return iloop_selected,ivtx_selected
+
+def list_annotated(list_path_json0,list_name_seg):
+  list_path_json = []
+  for path_json in list_path_json0:
+    dict_info = json.load(open(path_json, "r"))
+    if "person0" in dict_info:
+      is_ok = True
+      for name_seg in list_name_seg:
+        if not name_seg in dict_info["person0"]:
+          is_ok = False
+      if is_ok:
+        list_path_json.append(path_json)
+  return list_path_json
 
 #############################################################
 
@@ -326,19 +363,18 @@ def coco_get_dict_info(imginfo,anno,list_keypoint_name):
   return dict_out
 
 
-def arrange_old_new(list_path_img):
+def arrange_old_new_json(list_path_json):
   dict_bn_time = {}
-  for path_img in list_path_img:
-    path_json = path_img.rsplit(".",1)[0]+".json"
+  for path_json in list_path_json:
     if not os.path.isfile(path_json):
-      dict_bn_time[path_img] = -time.time()
+      dict_bn_time[path_json] = -time.time()
       continue
     with open(path_json,"r") as file0:
       dict_info0 = json.load(file0)
       if "saved_time" in dict_info0:
-        dict_bn_time[path_img] = -dict_info0["saved_time"]
+        dict_bn_time[path_json] = -dict_info0["saved_time"]
       else:
-        dict_bn_time[path_img] = -time.time()
+        dict_bn_time[path_json] = -time.time()
   list0 = sorted(dict_bn_time.items(), key=lambda x:x[1])
   return list(map(lambda x:x[0],list0))
 

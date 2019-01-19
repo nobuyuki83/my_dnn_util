@@ -21,6 +21,17 @@ def get_segmentation_map(net_seg, np_img, mag):
   np_in = np_in.reshape(np_in.shape[1:])
   return np_in,np_out0
 
+def get_training_data_pytorch(training_data,nstride:int):
+  np_in, np_tg = training_data.get_batch(nstride)
+  pt_in = torch.from_numpy(numpy.moveaxis(np_in, 3, 1).astype(numpy.float32) / 255.0)
+  pt_tg = torch.from_numpy(numpy.moveaxis(np_tg, 3, 1).astype(numpy.float32))
+  vpt_in = torch.autograd.Variable(pt_in, requires_grad=True)
+  vpt_tg = torch.autograd.Variable(pt_tg, requires_grad=False)
+  if torch.cuda.is_available():
+    vpt_in = vpt_in.cuda()
+    vpt_tg = vpt_tg.cuda()
+  return vpt_in, vpt_tg
+
 
 def load_model_cpm(net_cpm,path):
   if os.path.isfile(path):
