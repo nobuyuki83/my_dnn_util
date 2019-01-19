@@ -1,13 +1,14 @@
-import cv2, math, hashlib, os, numpy, argparse, json, time
+import cv2, os, numpy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import my_dnn_util.util as util
 
 def get_segmentation_map(net_seg, np_img, mag):
   npix = net_seg.npix
   net_seg.eval()
   np_in = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))
-  np_in = get_image_npix(np_in, npix, 1)
+  np_in = util.get_image_npix(np_in, npix, 1)
   np_in = np_in.reshape([1] + list(np_in.shape))
   ####
   pt_in = torch.from_numpy(numpy.moveaxis(np_in, 3, 1).astype(numpy.float32) / 255.0)
