@@ -15,10 +15,6 @@ def get_segmentation_map(net_seg, np_img, mag):
   with torch.no_grad():
     pt_out0 = net_seg.forward(pt_in)
   np_out0 = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
-#    view_batch(np_in,np_out0,self.net_cpm0.nstride)
-  ####
-  np_out0 = np_out0.reshape(np_out0.shape[1:])
-  np_in = np_in.reshape(np_in.shape[1:])
   return np_in,np_out0
 
 def get_training_data_pytorch(training_data,nstride:int):
@@ -53,17 +49,18 @@ def initialize_net(net):
 
 
 class ResUnit_BRC_Btl(torch.nn.Module):
-  def __init__(self, nc):
+  def __init__(self, nc, is_separable=False):
     super(ResUnit_BRC_Btl, self).__init__()
     assert nc%2 == 0
     nh = nc//2
+    ngroup = nh if is_separable else 1
     self.net = torch.nn.Sequential(
       torch.nn.BatchNorm2d(nc),
       torch.nn.ReLU(inplace=True),
       torch.nn.Conv2d(nc, nh, kernel_size=1),
       torch.nn.BatchNorm2d(nh),
       torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nh, nh, kernel_size=3, padding=1),
+      torch.nn.Conv2d(nh, nh, kernel_size=3, padding=1, groups=ngroup),
       torch.nn.BatchNorm2d(nh),
       torch.nn.ReLU(inplace=True),
       torch.nn.Conv2d(nh, nc, kernel_size=1),
@@ -72,7 +69,6 @@ class ResUnit_BRC_Btl(torch.nn.Module):
 
   def forward(self, x):
     return self.net(x)+x
-
 
 
 class NetUnit_Res(torch.nn.Module):
