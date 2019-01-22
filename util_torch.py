@@ -106,8 +106,9 @@ class ResUnit_BRC(torch.nn.Module):
 
 
 class ResUnit_BRC_ResHalf(torch.nn.Module):
-  def __init__(self, nc_in, nc_out):
+  def __init__(self, nc_in, nc_out, is_separable=False):
     super(ResUnit_BRC_ResHalf, self).__init__()
+    ngroup = nc_out if is_separable else 1
     self.bn1 = torch.nn.BatchNorm2d(nc_in)
     self.conv1 = torch.nn.Conv2d(nc_in, nc_out, kernel_size=1, padding=0, stride=1)
     ###
@@ -115,7 +116,7 @@ class ResUnit_BRC_ResHalf(torch.nn.Module):
       torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
       torch.nn.BatchNorm2d(nc_out),
       torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nc_out, nc_out, kernel_size=3, padding=1,stride=1),
+      torch.nn.Conv2d(nc_out, nc_out, kernel_size=3, padding=1,stride=1,groups=ngroup),
     )
     initialize_net(self)
 
@@ -123,6 +124,30 @@ class ResUnit_BRC_ResHalf(torch.nn.Module):
     x = torch.nn.functional.relu(self.bn1(x))
     y = torch.nn.functional.max_pool2d(self.conv1(x),kernel_size=4,padding=1,stride=2)
     return y+self.model(x)
+
+
+class ResUnit_BRC_ResHalf_Cat(torch.nn.Module):
+  def __init__(self, nc_in, nc_out, is_separable=False):
+    super(ResUnit_BRC_ResHalf_Cat, self).__init__()
+    nh0 = nc_out//2
+    nh1 = nc_out-nh0
+    ngroup = nh0 if is_separable else 1
+    ####
+    self.bn1 = torch.nn.BatchNorm2d(nc_in)
+    self.conv1 = torch.nn.Conv2d(nc_in, nh1, kernel_size=1, padding=0, stride=1)
+    ####
+    self.model = torch.nn.Sequential(
+      torch.nn.Conv2d(nc_in, nh0, kernel_size=4, padding=1, stride=2),
+      torch.nn.BatchNorm2d(nh0),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nh0, nh0, kernel_size=3, padding=1,stride=1,groups=ngroup),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    x = torch.nn.functional.relu(self.bn1(x))
+    y = torch.nn.functional.max_pool2d(self.conv1(x),kernel_size=4,padding=1,stride=2)
+    return torch.cat((y,self.model(x)),1)
 
 
 class ResUnit_BRC_ResDouble(torch.nn.Module):
@@ -143,6 +168,29 @@ class ResUnit_BRC_ResDouble(torch.nn.Module):
     x = torch.nn.functional.relu(self.bn1(x))
     y = torch.nn.functional.interpolate(self.conv1(x),scale_factor=2)
     return y+self.model(x)
+
+
+class ResUnit_BRC_ResDouble_Cat(torch.nn.Module):
+  def __init__(self, nc_in,nc_out,is_separable=False):
+    super(ResUnit_BRC_ResDouble_Cat, self).__init__()
+    nh0 = nc_out//2
+    nh1 = nc_out-nh0
+    ngroup = nh0 if is_separable else 1
+    self.bn1 = torch.nn.BatchNorm2d(nc_in)
+    self.conv1 = torch.nn.ConvTranspose2d(nc_in, nh1, kernel_size=1, padding=0, stride=1)
+    ###
+    self.model = torch.nn.Sequential(
+      torch.nn.ConvTranspose2d(nc_in, nh0, kernel_size=2, padding=0, stride=2),
+      torch.nn.BatchNorm2d(nh0),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nh0, nh0, kernel_size=3, padding=1, stride=1, groups=ngroup),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    x = torch.nn.functional.relu(self.bn1(x))
+    y = torch.nn.functional.interpolate(self.conv1(x),scale_factor=2)
+    return torch.cat((y,self.model(x)),1)
 
 
 
