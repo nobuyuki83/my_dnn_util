@@ -1,7 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-import cv2, math, hashlib, os, numpy, argparse, json, time
-from scipy.ndimage.filters import maximum_filter
+import cv2, math
 
 def load_texture(img_bgr):
   img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
