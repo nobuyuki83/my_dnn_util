@@ -27,6 +27,22 @@ def path_img_same_name(path_json:str):
     path_img = path_json.rsplit(".", 1)[0] + ".png"
   return path_img
 
+##################################
+# numpy
+
+def gauss_keypoint(np0, idim, cx0,cy0,r0):
+  nh = np0.shape[0]
+  nw = np0.shape[1]
+  w0 = numpy.arange(0, nw, 1, numpy.float32)
+  h0 = numpy.arange(0, nh, 1, numpy.float32)
+  w0 = w0.reshape((1,nw))
+  h0 = h0.reshape((nh,1))
+  np0[:,:,idim] = numpy.exp(-((w0-cx0)**2+(h0-cy0)**2)/(r0*r0))
+
+
+
+#################################
+
 def pick_loop(xy1:list,key:str,dict_prsn:dict):
   iloop_selected = -1
   ivtx_selected = -1
@@ -59,6 +75,15 @@ def list_annotated(list_path_json0,list_name_seg):
 
 #############################################################
 
+class FaceDetectorCV:
+  def __init__(self):
+    path_data = cv2.data.haarcascades
+    self.face_cascade = cv2.CascadeClassifier(path_data + 'haarcascade_frontalface_default.xml')
+
+  def get_face(self, img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = self.face_cascade.detectMultiScale(gray, minNeighbors=10)
+    return faces
 
 def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop):
   face_rad = dict_info["person0"]["face_rad"]
@@ -89,6 +114,12 @@ def cv2_get_numpy_loop_array(list_loop):
   for loop in list_loop:
     list_loop_np.append(numpy.array(loop, dtype=int).reshape(-1, 2))
   return list_loop_np
+
+def cv2_draw_rect(img, rect:list, color:tuple, width=2):
+  assert len(rect) == 4
+  recti = list(map(int, rect))
+  cv2.rectangle(img, (recti[0], recti[1]), (recti[0] + recti[2], recti[1] + recti[3]), color, width)
+
 
 def coco_get_image_annotation(path_json):
   dict_info = json.load(open(path_json))
@@ -225,15 +256,6 @@ def img_pad_mag_center(img1, size, mag, cnt):
 
 
 
-def gauss_keypoint(np0, idim, cx0,cy0,r0):
-  nh = np0.shape[0]
-  nw = np0.shape[1]
-  w0 = numpy.arange(0, nw, 1, numpy.float32)
-  h0 = numpy.arange(0, nh, 1, numpy.float32)
-  w0 = w0.reshape((1,nw))
-  h0 = h0.reshape((nh,1))
-  np0[:,:,idim] = numpy.exp(-((w0-cx0)**2+(h0-cy0)**2)/(r0*r0))
-
 
 def view_batch(np_in, np_tg, nstride):
   '''
@@ -280,19 +302,26 @@ def get_peaks(list_key,np_out0,mag):
 def get_segmentation_color_img(np_out0,
                               np_in0,
                               nstride:int):
+  print(np_in0.shape, np_out0.shape)
+  shape_np_out0 = np_out0.shape
   np_out0 = cv2.resize(np_out0, None, fx=nstride, fy=nstride)
+  if shape_np_out0[2] == 1:
+    assert np_out0.ndim == 2
+    np_out0 = np_out0.reshape((np_out0.shape[0],np_out0.shape[1],1))
+  print("hoge",np_in0.shape, np_out0.shape)
   ###
+
   np_res0 = np_in0.astype(numpy.float)
   mask_body = np_out0[:, :, 0]
   print(mask_body.shape)
   np_res0[:, :, 0] = np_res0[:, :, 0] * mask_body
   np_res0[:, :, 1] = np_res0[:, :, 1] * mask_body
   np_res0[:, :, 2] = np_res0[:, :, 2] * mask_body
-  ####
-  mask_bra = np_out0[:, :, 1]
-  np_res0[:, :, 0] = np_res0[:, :, 0] * (1 - mask_bra) + mask_bra * 255.0
-  np_res0[:, :, 1] = np_res0[:, :, 1] * (1 - mask_bra)
-  np_res0[:, :, 2] = np_res0[:, :, 2] * (1 - mask_bra)
+  if np_out0.shape[2] > 1:
+    mask_bra = np_out0[:, :, 1]
+    np_res0[:, :, 0] = np_res0[:, :, 0] * (1 - mask_bra) + mask_bra * 255.0
+    np_res0[:, :, 1] = np_res0[:, :, 1] * (1 - mask_bra)
+    np_res0[:, :, 2] = np_res0[:, :, 2] * (1 - mask_bra)
   np_res0 = numpy.clip(np_res0, 0.0, 255.0).astype(numpy.uint8)
   return np_res0
 
