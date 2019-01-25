@@ -70,6 +70,47 @@ class ResUnit_BRC_Btl(torch.nn.Module):
   def forward(self, x):
     return self.net(x)+x
 
+class ModuleConv_k3(torch.nn.Module):
+  def __init__(self, nc_in, nc_out,dilation=1):
+    super(ModuleConv_k3, self).__init__()
+    padding = dilation
+    self.model = torch.nn.Sequential(
+      torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, padding=padding, dilation=dilation),
+      torch.nn.BatchNorm2d(nc_out),
+      torch.nn.ReLU(inplace=True),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
+
+class ModuleConv_k4_s2(torch.nn.Module):
+  def __init__(self, nc_in, nc_out):
+    super(ModuleConv_k4_s2, self).__init__()
+    self.model = torch.nn.Sequential(
+      torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, padding=1, stride=2),
+      torch.nn.BatchNorm2d(nc_out),
+      torch.nn.ReLU(inplace=True),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
+
+
+class ModuleDeconv_k4_s2(torch.nn.Module):
+  def __init__(self, nc_in, nc_out):
+    super(ModuleDeconv_k4_s2, self).__init__()
+    self.model = torch.nn.Sequential(
+      torch.nn.ConvTranspose2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
+      torch.nn.BatchNorm2d(nc_out),
+      torch.nn.ReLU(inplace=True),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
+
 
 class NetUnit_Res(torch.nn.Module):
   def __init__(self, nc):
