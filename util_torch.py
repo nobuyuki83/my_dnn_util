@@ -75,7 +75,7 @@ class ModuleConv_k3(torch.nn.Module):
     super(ModuleConv_k3, self).__init__()
     padding = dilation
     self.model = torch.nn.Sequential(
-      torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, padding=padding, dilation=dilation),
+      torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation),
       torch.nn.BatchNorm2d(nc_out),
       torch.nn.ReLU(inplace=True),
     )
@@ -85,13 +85,20 @@ class ModuleConv_k3(torch.nn.Module):
     return self.model(x)
 
 class ModuleConv_k4_s2(torch.nn.Module):
-  def __init__(self, nc_in, nc_out):
+  def __init__(self, nc_in, nc_out, is_leaky=False):
     super(ModuleConv_k4_s2, self).__init__()
-    self.model = torch.nn.Sequential(
-      torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, padding=1, stride=2),
-      torch.nn.BatchNorm2d(nc_out),
-      torch.nn.ReLU(inplace=True),
-    )
+    if not is_leaky:
+      self.model = torch.nn.Sequential(
+        torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
+        torch.nn.BatchNorm2d(nc_out),
+        torch.nn.ReLU(inplace=True),
+      )
+    else:
+      self.model = torch.nn.Sequential(
+        torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
+        torch.nn.BatchNorm2d(nc_out),
+        torch.nn.LeakyReLU(inplace=True, negative_slope=0.2)
+      )
     initialize_net(self)
 
   def forward(self, x):

@@ -177,3 +177,29 @@ class NetEncDec1_Dilated(torch.nn.Module):
   def forward(self, x0):
     x1 = self.layer(x0)
     return x1
+
+
+class NetEncFc_Leaky(torch.nn.Module):
+  def __init__(self, path_file: str):
+    super(NetEncFc_Leaky, self).__init__()
+    self.path_file = path_file
+    self.nstride = 256
+    #####
+    self.layer = torch.nn.Sequential(
+      my_torch.ModuleConv_k4_s2(3, 64, is_leaky=True),
+      my_torch.ModuleConv_k4_s2(64, 128, is_leaky=True),
+      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True),
+      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True),
+      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True),
+      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True),
+    )
+    my_torch.initialize_net(self)
+    ####
+    if os.path.isfile(path_file):
+      self = my_torch.load_model_cpm(self, path_file)
+    if torch.cuda.is_available():
+      self = self.cuda()
+
+  def forward(self, x0):
+    x1 = self.layer(x0)
+    return x1
