@@ -139,7 +139,7 @@ class UNet1(torch.nn.Module):
     return x8
 
 class NetEncDec1_Dilated(torch.nn.Module):
-  def __init__(self,nch_out:int,
+  def __init__(self,nch_in:int, nch_out:int,
                path_file: str):
     super(NetEncDec1_Dilated, self).__init__()
     self.path_file = path_file
@@ -147,7 +147,7 @@ class NetEncDec1_Dilated(torch.nn.Module):
     self.nstride = 1
     #####
     self.layer = torch.nn.Sequential( # 1/1(3)
-      torch.nn.Conv2d(3, 64, kernel_size=5, padding=2, stride=1), # 1/2
+      torch.nn.Conv2d(nch_in, 64, kernel_size=5, padding=2, stride=1), # 1/2
       torch.nn.BatchNorm2d(64),
       torch.nn.ReLU(inplace=True),
       my_torch.ModuleConv_k4_s2(64, 128),
@@ -165,7 +165,8 @@ class NetEncDec1_Dilated(torch.nn.Module):
       my_torch.ModuleConv_k3(128, 128),
       my_torch.ModuleDeconv_k4_s2(128, 64),
       my_torch.ModuleConv_k3(64, 32),
-      torch.nn.Conv2d(32,nch_out,kernel_size=3, padding=1, stride=1)
+      torch.nn.Conv2d(32,nch_out,kernel_size=3, padding=1, stride=1),
+      torch.nn.Sigmoid()
     )
     my_torch.initialize_net(self)
     ####
