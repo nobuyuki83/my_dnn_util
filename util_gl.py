@@ -105,6 +105,9 @@ def draw_annotation_keypoint(dict_info):
   draw_keypoint_circle(dict_info,0.3,(  0,  0,255),3,"keypoint_ankleleft")
   draw_keypoint_circle(dict_info,0.3,(  0,255,  0),3,"keypoint_ankleright")
   ####
+  draw_keypoint_circle(dict_info,0.2,(  0,  0,255),3,"keypoint_nippleleft")
+  draw_keypoint_circle(dict_info,0.2,(  0,255,  0),3,"keypoint_nippleright")
+  ####
   draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_shoulderleft","keypoint_elbowleft")
   draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_shoulderright","keypoint_elbowright")
   draw_keypoint_line(dict_info,(255,  0,255), "keypoint_elbowleft","keypoint_wristleft")
