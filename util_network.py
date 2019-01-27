@@ -180,19 +180,18 @@ class NetEncDec1_Dilated(torch.nn.Module):
     return x1
 
 
-class NetEncFc_Leaky(torch.nn.Module):
+class NetClassifier(torch.nn.Module):
   def __init__(self, path_file: str):
-    super(NetEncFc_Leaky, self).__init__()
+    super(NetClassifier, self).__init__()
     self.path_file = path_file
-    self.nstride = 256
-    #####
     self.layer = torch.nn.Sequential(
-      my_torch.ModuleConv_k4_s2(3, 64, is_leaky=True),
-      my_torch.ModuleConv_k4_s2(64, 128, is_leaky=True),
-      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True),
-      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True),
-      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True),
-      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True),
+      my_torch.ModuleConv_k4_s2(3, 64, is_leaky=True), #1/2
+      my_torch.ModuleConv_k4_s2(64, 128, is_leaky=True), #1/4
+      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), #1/16
+      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True), #1/32
+      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True), #1/64
+      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True), #1/128
+      torch.nn.Linear(512,2)
     )
     my_torch.initialize_net(self)
     ####
@@ -202,5 +201,8 @@ class NetEncFc_Leaky(torch.nn.Module):
       self = self.cuda()
 
   def forward(self, x0):
+    assert x0.shape[1] == 128
+    assert x0.shape[2] == 128
+    assert x0.shape[3] == 3
     x1 = self.layer(x0)
     return x1

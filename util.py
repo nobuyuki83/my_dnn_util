@@ -1,5 +1,5 @@
 
-import cv2, math, hashlib, os, numpy, argparse, json, time
+import cv2, math, hashlib, os, numpy, argparse, json, time, random
 from scipy.ndimage.filters import maximum_filter
 
 
@@ -39,7 +39,39 @@ def gauss_keypoint(np0, idim, cx0,cy0,r0):
   h0 = h0.reshape((nh,1))
   np0[:,:,idim] = numpy.exp(-((w0-cx0)**2+(h0-cy0)**2)/(r0*r0))
 
+def get_random_polygon(x0,y0,rad):
+  ndiv = random.randint(3,7)
+  delrad = math.pi*2.0/ndiv
+  list_loop = []
+  for idiv in range(ndiv):
+    r1 = rad*random.uniform(1.0,2.0)
+    x1 = r1*math.cos(delrad*idiv)
+    y1 = r1*math.sin(delrad*idiv)
+    list_loop.append(x0+x1)
+    list_loop.append(y0+y1)
+  return list_loop
 
+class BatchDispenser:
+  def __init__(self, nbatch:int, list_path_in:list):
+    self.nbatch = nbatch
+    self.ibatch = 0
+    self.iepoch = 0
+    self.list_path_in = list_path_in
+    random.shuffle(self.list_path_in)
+
+  def get_batch_path(self):
+    list_path_batch_in = []
+    for iipath in range(self.nbatch):
+      ipath0 = self.ibatch*self.nbatch+iipath
+      if ipath0 >= len(self.list_path_in):
+        break
+      list_path_batch_in.append(self.list_path_in[ipath0])
+    self.ibatch += 1
+    if self.ibatch*self.nbatch >= len(self.list_path_in):
+      random.shuffle(self.list_path_in)
+      self.ibatch = 0
+      self.iepoch += 1
+    return list_path_batch_in
 
 #################################
 
@@ -98,6 +130,23 @@ def list_annotated(list_path_json0,list_name_seg):
       if is_ok:
         list_path_json.append(path_json)
   return list_path_json
+
+
+def get_affine(dict_info, size_input, size_output):
+  dict_prsn = dict_info["person0"]
+  scale = 16 / dict_prsn["face_rad"]
+  scale *= random.uniform(0.8, 1.2)
+  cnt = [size_input[0] * 0.5, + size_input[1] * 0.5]
+  if "bbox" in dict_prsn:
+    bbox = dict_prsn["bbox"]
+    assert type(bbox) == list and len(bbox) == 4
+    cnt[0] = bbox[0] + bbox[2] * 0.5
+    cnt[1] = bbox[1] + bbox[3] * 0.5
+  rot = random.randint(-40, 40)
+  rot_mat = cv2.getRotationMatrix2D(tuple([cnt[0], cnt[1]]), rot, scale)
+  rot_mat[0][2] += size_output[0] * 0.5 - cnt[0] + random.randint(int(-8 / scale), int(+8 / scale))
+  rot_mat[1][2] += size_output[1] * 0.5 - cnt[1] + random.randint(int(-8 / scale), int(+8 / scale))
+  return rot_mat, scale
 
 #############################################################
 
