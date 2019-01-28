@@ -17,16 +17,13 @@ def get_segmentation_map(net_seg, np_img, mag):
   np_out0 = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
   return np_in,np_out0
 
-def get_training_data_pytorch(training_data,nstride:int):
-  np_in, np_tg = training_data.get_batch(nstride)
-  pt_in = torch.from_numpy(numpy.moveaxis(np_in, 3, 1).astype(numpy.float32) / 255.0)
-  pt_tg = torch.from_numpy(numpy.moveaxis(np_tg, 3, 1).astype(numpy.float32))
-  vpt_in = torch.autograd.Variable(pt_in, requires_grad=True)
-  vpt_tg = torch.autograd.Variable(pt_tg, requires_grad=False)
+
+def np2pt(np_img,scale,requires_grad):
+  pt_img = torch.from_numpy(numpy.moveaxis(np_img, 3, 1).astype(numpy.float32)*scale)
+  vpt_img = torch.autograd.Variable(pt_img, requires_grad=requires_grad)
   if torch.cuda.is_available():
-    vpt_in = vpt_in.cuda()
-    vpt_tg = vpt_tg.cuda()
-  return vpt_in, vpt_tg
+    vpt_img = vpt_img.cuda()
+  return vpt_img
 
 
 def load_model_cpm(net_cpm,path):
