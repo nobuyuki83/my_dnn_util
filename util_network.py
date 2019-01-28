@@ -138,6 +138,9 @@ class UNet1(torch.nn.Module):
     x8 = self.layer7(torch.cat([x0,x7],1)) # 1/2(3+16) -> 1/1(nch_out)
     return x8
 
+
+
+
 class NetEncDec1_Dilated(torch.nn.Module):
   def __init__(self,nch_in:int, nch_out:int,
                path_file: str):
@@ -184,15 +187,14 @@ class NetClassifier(torch.nn.Module):
   def __init__(self, path_file: str):
     super(NetClassifier, self).__init__()
     self.path_file = path_file
+    self.nstride = 32
     self.layer = torch.nn.Sequential(
       my_torch.ModuleConv_k4_s2(3, 64, is_leaky=True), #1/2
       my_torch.ModuleConv_k4_s2(64, 128, is_leaky=True), #1/4
       my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), #1/16
       my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True), #1/32
-      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True), #1/64
-      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True), #1/128
-      torch.nn.Linear(512,2)
     )
+    self.fc1 = torch.nn.Linear(512,1)
     my_torch.initialize_net(self)
     ####
     if os.path.isfile(path_file):
@@ -201,8 +203,9 @@ class NetClassifier(torch.nn.Module):
       self = self.cuda()
 
   def forward(self, x0):
-    assert x0.shape[1] == 128
-    assert x0.shape[2] == 128
-    assert x0.shape[3] == 3
     x1 = self.layer(x0)
-    return x1
+    x3 = torch.nn.functional.avg_pool2d(x1, kernel_size=x1.size()[2:])
+    x3 = torch.squeeze(x3)
+    x4 = self.fc1(x3)
+    x5 = torch.sigmoid(x4)
+    return x5
