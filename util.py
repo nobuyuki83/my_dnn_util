@@ -1,5 +1,5 @@
-
 import cv2, math, hashlib, os, numpy, argparse, json, time, random
+import torch
 from scipy.ndimage.filters import maximum_filter
 
 
@@ -118,19 +118,32 @@ def pick_loop_edge(xy2:list, key:str, dict_prsn:dict):
   return iloop_selected,ivtx_selected,min_xy3
 
 
-def list_annotated(list_path_json0,list_name_seg):
+def list_annotated_and(list_path_json0, list_name_anno):
   list_path_json = []
   for path_json in list_path_json0:
     dict_info = json.load(open(path_json, "r"))
     if "person0" in dict_info:
       is_ok = True
-      for name_seg in list_name_seg:
+      for name_seg in list_name_anno:
         if not name_seg in dict_info["person0"]:
           is_ok = False
       if is_ok:
         list_path_json.append(path_json)
   return list_path_json
 
+
+def list_annotated_or(list_path_json0, list_name_anno):
+  list_path_json = []
+  for path_json in list_path_json0:
+    dict_info = json.load(open(path_json, "r"))
+    if "person0" in dict_info:
+      is_ok = False
+      for name_seg in list_name_anno:
+        if name_seg in dict_info["person0"]:
+          is_ok = True
+      if is_ok:
+        list_path_json.append(path_json)
+  return list_path_json
 
 def get_affine(dict_info, size_input, size_output):
   dict_prsn = dict_info["person0"]
@@ -361,6 +374,18 @@ def view_batch(np_in, np_tg, nstride):
 
 ##################################################################################################
 
+def get_segmentation_map(net_seg, np_img, mag):
+  npix = net_seg.npix
+  net_seg.eval()
+  np_in = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))
+  np_in = get_image_npix(np_in, npix, 1)
+  np_in = np_in.reshape([1] + list(np_in.shape))
+  ####
+  pt_in = torch.from_numpy(numpy.moveaxis(np_in, 3, 1).astype(numpy.float32) / 255.0)
+  with torch.no_grad():
+    pt_out0 = net_seg.forward(pt_in)
+  np_out0 = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
+  return np_in,np_out0
 
 
 def get_peaks(list_key,np_out0,mag):
