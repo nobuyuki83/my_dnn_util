@@ -140,9 +140,6 @@ def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
         glVertex2d(x,-y)
       glEnd()
 
-
-
-
 def set_view_trans(img_size_info):
   viewport = glGetIntegerv(GL_VIEWPORT)
   win_h = viewport[3]
