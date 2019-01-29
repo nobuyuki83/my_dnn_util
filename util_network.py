@@ -189,12 +189,16 @@ class NetClassifier(torch.nn.Module):
     self.path_file = path_file
     self.nstride = 32
     self.layer = torch.nn.Sequential(
-      my_torch.ModuleConv_k4_s2(3, 64, is_leaky=True), #1/2
-      my_torch.ModuleConv_k4_s2(64, 128, is_leaky=True), #1/4
-      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), #1/16
-      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True), #1/32
+      my_torch.ModuleConv_k4_s2(  3,  64, is_leaky=True, bn=False),  # 1/8
+      my_torch.ModuleConv_k3(    64,  64, is_leaky=True), # 1/4
+      my_torch.ModuleConv_k4_s2( 64, 128, is_leaky=True), # 1/8
+      my_torch.ModuleConv_k3(   128, 128, is_leaky=True), # 1/8
+      my_torch.ModuleConv_k3(   128, 128, is_leaky=True), # 1/8
+      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), # 1/16
+      my_torch.ModuleConv_k3(   256, 256, is_leaky=True), # 1/16
+      my_torch.ModuleConv_k4_s2(256, 256, is_leaky=True), # 1/32
     )
-    self.fc1 = torch.nn.Linear(512,1)
+    self.fc1 = torch.nn.Linear(256,1)
     my_torch.initialize_net(self)
     ####
     if os.path.isfile(path_file):
