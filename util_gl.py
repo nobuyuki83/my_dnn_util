@@ -73,72 +73,6 @@ def drawPolyline(pl, color=(1, 0, 0), width=1):
   glEnd()
 
 
-def draw_keypoint_circle(dict_info,head_ratio,color,width,key):
-  if not "face_rad" in dict_info:
-    return
-  r0 = dict_info["face_rad"]
-  if key in dict_info:
-    if not dict_info[key][2] == 0:
-       drawCircle(dict_info[key],r0*head_ratio,color=color,width=width)
-
-def draw_keypoint_line(dict_info,color,key0,key1):
-  if key0 in dict_info and key1 in dict_info:
-    if not dict_info[key0][2] == 0 and not dict_info[key1][2] ==0:
-      drawLine(dict_info[key0],dict_info[key1],color,width=2)
-
-
-
-def draw_annotation_keypoint(dict_info):
-  draw_keypoint_circle(dict_info,1.0,(255,  0,  0),2,"keypoint_head")
-  ####
-  draw_keypoint_circle(dict_info,0.4,(  0,  0,255),2,"keypoint_shoulderleft")
-  draw_keypoint_circle(dict_info,0.4,(  0,255,  0),2,"keypoint_shoulderright")
-  draw_keypoint_circle(dict_info,0.3,(255,  0,255),2,"keypoint_elbowleft")
-  draw_keypoint_circle(dict_info,0.3,(255,255,  0),2,"keypoint_elbowright")
-  draw_keypoint_circle(dict_info,0.2,(  0,  0,255),2,"keypoint_wristleft")
-  draw_keypoint_circle(dict_info,0.2,(  0,255,  0),2,"keypoint_wristright")
-  ####
-  draw_keypoint_circle(dict_info,0.7,(  0,  0,255),3,"keypoint_hipleft")
-  draw_keypoint_circle(dict_info,0.7,(  0,255,  0),3,"keypoint_hipright")
-  draw_keypoint_circle(dict_info,0.5,(255,  0,255),3,"keypoint_kneeleft")
-  draw_keypoint_circle(dict_info,0.5,(255,255,  0),3,"keypoint_kneeright")
-  draw_keypoint_circle(dict_info,0.3,(  0,  0,255),3,"keypoint_ankleleft")
-  draw_keypoint_circle(dict_info,0.3,(  0,255,  0),3,"keypoint_ankleright")
-  ####
-  draw_keypoint_circle(dict_info,0.2,(  0,  0,255),3,"keypoint_nippleleft")
-  draw_keypoint_circle(dict_info,0.2,(  0,255,  0),3,"keypoint_nippleright")
-  ####
-  draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_shoulderleft","keypoint_elbowleft")
-  draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_shoulderright","keypoint_elbowright")
-  draw_keypoint_line(dict_info,(255,  0,255), "keypoint_elbowleft","keypoint_wristleft")
-  draw_keypoint_line(dict_info,(255,255,  0), "keypoint_elbowright","keypoint_wristright")
-  ####
-  draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_hipleft","keypoint_kneeleft")
-  draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_hipright","keypoint_kneeright")
-  draw_keypoint_line(dict_info,(255,  0,255), "keypoint_kneeleft","keypoint_ankleleft")
-  draw_keypoint_line(dict_info,(255,255,  0), "keypoint_kneeright","keypoint_ankleright")
-
-
-def draw_annotation_bbox(dict_info):
-  if 'bbox' in dict_info:
-    drawRect(dict_info["bbox"],color=(255,0,0),width=1)
-
-
-def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
-  if name_seg in dict_info:
-    for iloop,loop in enumerate(dict_info[name_seg]):
-      drawPolyline(loop,color=(1,1,1),width=1)
-      if iloop == selected_loop:
-        glColor3d(1.0,0.0,0.0)
-      else:
-        glColor3d(0.0,0.0,1.0)
-      glPointSize(4)
-      glBegin(GL_POINTS)
-      for ip in range(len(loop)//2):
-        x = loop[ip*2+0]
-        y = loop[ip*2+1]
-        glVertex2d(x,-y)
-      glEnd()
 
 def set_view_trans(img_size_info):
   viewport = glGetIntegerv(GL_VIEWPORT)
@@ -205,3 +139,72 @@ def get_img_coord(xy, img_size_info):
   y1 = xy[1] * scale_imgwin
   return (x1, y1)
 
+
+###########################################################################################
+#### person dataset
+
+def draw_keypoint_circle(dict_info,head_ratio,color,width,key):
+  if not "face_rad" in dict_info:
+    return
+  r0 = dict_info["face_rad"]
+  if key in dict_info:
+    if not dict_info[key][2] == 0:
+       drawCircle(dict_info[key],r0*head_ratio,color=color,width=width)
+
+def draw_keypoint_line(dict_info,color,key0,key1):
+  if key0 in dict_info and key1 in dict_info:
+    if not dict_info[key0][2] == 0 and not dict_info[key1][2] ==0:
+      drawLine(dict_info[key0],dict_info[key1],color,width=2)
+
+
+def draw_annotation_keypoint(dict_info):
+  draw_keypoint_circle(dict_info,1.0,(255,  0,  0),2,"keypoint_head")
+  ####
+  draw_keypoint_circle(dict_info,0.4,(  0,  0,255),2,"keypoint_shoulderleft")
+  draw_keypoint_circle(dict_info,0.4,(  0,255,  0),2,"keypoint_shoulderright")
+  draw_keypoint_circle(dict_info,0.3,(255,  0,255),2,"keypoint_elbowleft")
+  draw_keypoint_circle(dict_info,0.3,(255,255,  0),2,"keypoint_elbowright")
+  draw_keypoint_circle(dict_info,0.2,(  0,  0,255),2,"keypoint_wristleft")
+  draw_keypoint_circle(dict_info,0.2,(  0,255,  0),2,"keypoint_wristright")
+  ####
+  draw_keypoint_circle(dict_info,0.7,(  0,  0,255),3,"keypoint_hipleft")
+  draw_keypoint_circle(dict_info,0.7,(  0,255,  0),3,"keypoint_hipright")
+  draw_keypoint_circle(dict_info,0.5,(255,  0,255),3,"keypoint_kneeleft")
+  draw_keypoint_circle(dict_info,0.5,(255,255,  0),3,"keypoint_kneeright")
+  draw_keypoint_circle(dict_info,0.3,(  0,  0,255),3,"keypoint_ankleleft")
+  draw_keypoint_circle(dict_info,0.3,(  0,255,  0),3,"keypoint_ankleright")
+  ####
+  draw_keypoint_circle(dict_info,0.2,(  0,  0,255),3,"keypoint_nippleleft")
+  draw_keypoint_circle(dict_info,0.2,(  0,255,  0),3,"keypoint_nippleright")
+  ####
+  draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_shoulderleft","keypoint_elbowleft")
+  draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_shoulderright","keypoint_elbowright")
+  draw_keypoint_line(dict_info,(255,  0,255), "keypoint_elbowleft","keypoint_wristleft")
+  draw_keypoint_line(dict_info,(255,255,  0), "keypoint_elbowright","keypoint_wristright")
+  ####
+  draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_hipleft","keypoint_kneeleft")
+  draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_hipright","keypoint_kneeright")
+  draw_keypoint_line(dict_info,(255,  0,255), "keypoint_kneeleft","keypoint_ankleleft")
+  draw_keypoint_line(dict_info,(255,255,  0), "keypoint_kneeright","keypoint_ankleright")
+
+
+def draw_annotation_bbox(dict_info):
+  if 'bbox' in dict_info:
+    drawRect(dict_info["bbox"],color=(255,0,0),width=1)
+
+
+def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
+  if name_seg in dict_info:
+    for iloop,loop in enumerate(dict_info[name_seg]):
+      drawPolyline(loop,color=(1,1,1),width=1)
+      if iloop == selected_loop:
+        glColor3d(1.0,0.0,0.0)
+      else:
+        glColor3d(0.0,0.0,1.0)
+      glPointSize(4)
+      glBegin(GL_POINTS)
+      for ip in range(len(loop)//2):
+        x = loop[ip*2+0]
+        y = loop[ip*2+1]
+        glVertex2d(x,-y)
+      glEnd()

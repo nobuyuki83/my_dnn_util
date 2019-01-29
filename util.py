@@ -324,13 +324,14 @@ def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop):
       color0 = prop[0:3]
       rad0 = prop[3]*face_rad
       width = int(prop[4])
-      cv2.circle(np_img0, (pos_key[0], pos_key[1]), int(rad0), color0, width)
+      cv2.circle(np_img0, (int(pos_key[0]), int(pos_key[1])), int(rad0), color0, width)
 
   if "bbox" in dict_info["person0"]:
     bbox = dict_info["person0"]["bbox"]
-    cv2.rectangle(np_img0, tuple(bbox[0:2]),
-                (bbox[0] + bbox[2], bbox[1] + bbox[3]),
-                (255, 0, 0), 1)
+    cv2.rectangle(np_img0,
+                  (int(bbox[0]),int(bbox[1])),
+                  (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3])),
+                  (255, 0, 0), 1)
 
   if "segmentation" in dict_info["person0"]:
     list_seg = dict_info["person0"]["segmentation"]
