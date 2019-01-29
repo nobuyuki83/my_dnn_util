@@ -73,6 +73,31 @@ def drawPolyline(pl, color=(1, 0, 0), width=1):
   glEnd()
 
 
+<<<<<<< HEAD
+=======
+def draw_keypoint_line(dict_info,color,key0,key1):
+  if key0 in dict_info and key1 in dict_info:
+    if not dict_info[key0][2] == 0 and not dict_info[key1][2] ==0:
+      drawLine(dict_info[key0],dict_info[key1],color,width=2)
+
+
+
+def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
+  if name_seg in dict_info:
+    for iloop,loop in enumerate(dict_info[name_seg]):
+      drawPolyline(loop,color=(1,1,1),width=1)
+      if iloop == selected_loop:
+        glColor3d(1.0,0.0,0.0)
+      else:
+        glColor3d(0.0,0.0,1.0)
+      glPointSize(4)
+      glBegin(GL_POINTS)
+      for ip in range(len(loop)//2):
+        x = loop[ip*2+0]
+        y = loop[ip*2+1]
+        glVertex2d(x,-y)
+      glEnd()
+>>>>>>> a99bb62e70a3b9c9b3076cf701e50a5846a8c482
 
 def set_view_trans(img_size_info):
   viewport = glGetIntegerv(GL_VIEWPORT)
@@ -140,8 +165,14 @@ def get_img_coord(xy, img_size_info):
   return (x1, y1)
 
 
+<<<<<<< HEAD
 ###########################################################################################
 #### person dataset
+=======
+#####################################################################################
+# person dataset from here
+
+>>>>>>> a99bb62e70a3b9c9b3076cf701e50a5846a8c482
 
 def draw_keypoint_circle(dict_info,head_ratio,color,width,key):
   if not "face_rad" in dict_info:
@@ -151,12 +182,15 @@ def draw_keypoint_circle(dict_info,head_ratio,color,width,key):
     if not dict_info[key][2] == 0:
        drawCircle(dict_info[key],r0*head_ratio,color=color,width=width)
 
+<<<<<<< HEAD
 def draw_keypoint_line(dict_info,color,key0,key1):
   if key0 in dict_info and key1 in dict_info:
     if not dict_info[key0][2] == 0 and not dict_info[key1][2] ==0:
       drawLine(dict_info[key0],dict_info[key1],color,width=2)
 
 
+=======
+>>>>>>> a99bb62e70a3b9c9b3076cf701e50a5846a8c482
 def draw_annotation_keypoint(dict_info):
   draw_keypoint_circle(dict_info,1.0,(255,  0,  0),2,"keypoint_head")
   ####
@@ -191,6 +225,7 @@ def draw_annotation_keypoint(dict_info):
 def draw_annotation_bbox(dict_info):
   if 'bbox' in dict_info:
     drawRect(dict_info["bbox"],color=(255,0,0),width=1)
+<<<<<<< HEAD
 
 
 def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
@@ -208,3 +243,5 @@ def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
         y = loop[ip*2+1]
         glVertex2d(x,-y)
       glEnd()
+=======
+>>>>>>> a99bb62e70a3b9c9b3076cf701e50a5846a8c482

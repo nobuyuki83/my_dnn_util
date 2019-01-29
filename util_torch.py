@@ -4,7 +4,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 def np2pt(np_img,scale,requires_grad):
-  pt_img = torch.from_numpy(numpy.moveaxis(np_img, 3, 1).astype(numpy.float32)*scale)
+  np_img0 = np_img.view()
+  if np_img.ndim == 3:
+    np_img0 = np_img.reshape([1]+list(np_img.shape))
+  if np_img.ndim == 2:
+    np_img0 = np_img.reshape(tuple([1]+list(np_img.shape)+[1]))
+  pt_img = torch.from_numpy(numpy.moveaxis(np_img0, 3, 1).astype(numpy.float32)*scale)
   vpt_img = torch.autograd.Variable(pt_img, requires_grad=requires_grad)
   if torch.cuda.is_available():
     vpt_img = vpt_img.cuda()
@@ -24,6 +29,9 @@ def initialize_net(net):
   for m in net.modules():
     if isinstance(m, torch.nn.Conv2d):
       torch.nn.init.xavier_uniform_(m.weight, 1.414)
+      torch.nn.init.constant_(m.bias, 0.1)
+    if isinstance(m, torch.nn.Linear):
+      torch.nn.init.xavier_uniform_(m.weight, 1.1414)
       torch.nn.init.constant_(m.bias, 0.1)
     if isinstance(m, torch.nn.BatchNorm2d):
       m.weight.data.fill_(1)
@@ -53,34 +61,39 @@ class ResUnit_BRC_Btl(torch.nn.Module):
     return self.net(x)+x
 
 class ModuleConv_k3(torch.nn.Module):
-  def __init__(self, nc_in, nc_out,dilation=1):
+  def __init__(self, nc_in, nc_out,dilation=1, is_leaky=False, bn=True):
     super(ModuleConv_k3, self).__init__()
     padding = dilation
-    self.model = torch.nn.Sequential(
-      torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation),
-      torch.nn.BatchNorm2d(nc_out),
-      torch.nn.ReLU(inplace=True),
-    )
+    layers = []
+    ####
+    layers.append( torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation) )
+    ####
+    if bn :
+      layers.append(torch.nn.BatchNorm2d(nc_out))
+    #####
+    if not is_leaky:
+      layers.append(torch.nn.ReLU(inplace=True))
+    else:
+      layers.append(torch.nn.LeakyReLU(inplace=True,negative_slope=0.2))
+    ####
+    self.model = nn.Sequential(*layers)
     initialize_net(self)
 
   def forward(self, x):
     return self.model(x)
 
 class ModuleConv_k4_s2(torch.nn.Module):
-  def __init__(self, nc_in, nc_out, is_leaky=False):
+  def __init__(self, nc_in, nc_out, is_leaky=False, bn=True):
     super(ModuleConv_k4_s2, self).__init__()
+    layers = []
+    layers.append(torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2))
+    if bn:
+      layers.append(torch.nn.BatchNorm2d(nc_out))
     if not is_leaky:
-      self.model = torch.nn.Sequential(
-        torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
-        torch.nn.BatchNorm2d(nc_out),
-        torch.nn.ReLU(inplace=True),
-      )
+      layers.append( torch.nn.ReLU(inplace=True) )
     else:
-      self.model = torch.nn.Sequential(
-        torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
-        torch.nn.BatchNorm2d(nc_out),
-        torch.nn.LeakyReLU(inplace=True, negative_slope=0.2)
-      )
+      layers.append(torch.nn.LeakyReLU(inplace=True, negative_slope=0.2))
+    self.model = nn.Sequential(*layers)
     initialize_net(self)
 
   def forward(self, x):

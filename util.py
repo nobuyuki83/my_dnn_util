@@ -140,7 +140,7 @@ def cv2_draw_rect(img, rect:list, color:tuple, width=2):
 
 ############################################################
 
-def get_image_npix(img1, npix, mag):
+def get_image_npix(img1, npix, mag, color=(0,0,0)):
   img2 = img1[0::mag, 0::mag]
   ####
   img3 = img2.copy()
@@ -148,8 +148,8 @@ def get_image_npix(img1, npix, mag):
   w3 = img3.shape[1]
   nbh3 = math.ceil(h3 / npix)
   nbw3 = math.ceil(w3 / npix)
-  img3 = cv2.copyMakeBorder(img3, 0, npix * nbh3 - h3, 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0))
-  img3 = cv2.copyMakeBorder(img3, 0, 0, 0, npix * nbw3 - w3, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+  img3 = cv2.copyMakeBorder(img3, 0, npix * nbh3 - h3, 0, 0, cv2.BORDER_CONSTANT, value=color)
+  img3 = cv2.copyMakeBorder(img3, 0, 0, 0, npix * nbw3 - w3, cv2.BORDER_CONSTANT, value=color)
   return img3
 
 def img_pad(img1, size):
