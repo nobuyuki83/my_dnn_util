@@ -1,6 +1,6 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-import cv2, glob, random, json, math, time, argparse
+import cv2, glob, random, json, math, time, argparse, yaml
 import my_dnn_util.util as my_util
 import my_dnn_util.util_gl as my_gl
 
@@ -9,6 +9,7 @@ list_path_json = []
 ind_list_path_json = 0
 img_size_info = (250, 250, 1.0, 1.0, -1)
 dict_info = {}
+dict_config = None
 mode_prsn = "person0"
 mode_edit = ""
 
@@ -47,7 +48,7 @@ def display():
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
-  my_gl.draw_annotation_keypoint(dict_info[mode_prsn])
+  my_gl.draw_annotation_keypoint(dict_info[mode_prsn],dict_config['kp_draw_prop'])
   my_gl.draw_annotation_bbox(dict_info[mode_prsn])
   ####
   glDisable(GL_TEXTURE_2D)
@@ -79,22 +80,8 @@ def keyboard(bkey, x, y):
     dict_info[mode_prsn]["face_rad"] += 3
   if key == "0":
     mode_edit = 'bbox'
-  if key == "1":
-    mode_edit = 'keypoint_head'
-  if key == "2": mode_edit = 'keypoint_shoulderleft'
-  if key == "3": mode_edit = 'keypoint_shoulderright'
-  if key == "4": mode_edit = 'keypoint_elbowleft'
-  if key == "5": mode_edit = 'keypoint_elbowright'
-  if key == "6": mode_edit = 'keypoint_wristleft'
-  if key == "7": mode_edit = 'keypoint_wristright'
-  if key == "@": mode_edit = 'keypoint_hipleft'
-  if key == "#": mode_edit = 'keypoint_hipright'
-  if key == "$": mode_edit = 'keypoint_kneeleft'
-  if key == "%": mode_edit = 'keypoint_kneeright'
-  if key == "^": mode_edit = 'keypoint_ankleleft'
-  if key == "&": mode_edit = 'keypoint_ankleright'
-  if key == "W": mode_edit = 'keypoint_nippleleft'
-  if key == "E": mode_edit = 'keypoint_nippleright'
+  if key in dict_config['key2kp']:
+    mode_edit = dict_config['key2kp'][key]
   if key == 'x':
     dict_info[mode_prsn].pop(mode_edit)
   if key == 's':
@@ -139,12 +126,16 @@ def motion(x, y):
   glutPostRedisplay()
 
 
-if __name__ == "__main__":
+def main():
+  global list_path_json, ind_list_path_json, dict_config
   parser = argparse.ArgumentParser(description="train convolutional pose machine",
                                    add_help=True)
   parser.add_argument('--path_dir_img', type=my_util.is_dir, help='input image directory')
+  parser.add_argument('--path_yml', help='input image directory')
   args = parser.parse_args()
 
+  dict_config = yaml.load(open(args.path_yml, "r"))
+  print(dict_config)
 
   # GLUT Window Initialization
   glutInit()
@@ -166,3 +157,6 @@ if __name__ == "__main__":
   load_img_info(0)
   ####
   glutMainLoop()
+
+if __name__ == "__main__":
+  main()

@@ -1,0 +1,45 @@
+list_kp:
+  - keypoint_head
+  - keypoint_shoulderleft
+  - keypoint_shoulderright
+  - keypoint_elbowleft
+  - keypoint_elbowright
+  - keypoint_wristleft
+  - keypoint_wristright  
+  - keypoint_hipleft
+  - keypoint_hipright  
+  - keypoint_kneeleft
+  - keypoint_kneeright  
+  - keypoint_ankleleft
+  - keypoint_ankleright  
+
+
+kp_draw_prop:
+  keypoint_head: [0,   0, 255, 1.0, 2.0]
+  keypoint_shoulderleft: [255, 0,   0, 0.4, 1.0]
+  keypoint_shoulderright: [0, 255,   0, 0.4, 1.0] 
+  keypoint_elbowleft: [255, 0, 255, 0.3, 1.0] 
+  keypoint_elbowright: [0, 255, 255, 0.3, 1.0]
+  keypoint_wristleft: [255, 0,   0, 0.2, 1.0]
+  keypoint_wristright:  [0, 255,   0, 0.2, 1.0]
+  keypoint_hipleft: [255, 0,   0, 0.7, 2.0] 
+  keypoint_hipright: [0, 255,   0, 0.7, 2.0]
+  keypoint_kneeleft:  [255, 0, 255, 0.5, 2.0]
+  keypoint_kneeright: [0, 255, 255, 0.5, 2.0]
+  keypoint_ankleleft: [255, 0,   0, 0.3, 2.0]
+  keypoint_ankleright: [0, 255,   0, 0.3, 2.0]
+
+key2kp:
+  '1': keypoint_head
+  '2': keypoint_shoulderleft
+  '3': keypoint_shoulderright
+  '4': keypoint_elbowleft
+  '5': keypoint_elbowright
+  '6': keypoint_wristleft
+  '7': keypoint_wristright
+  '@': keypoint_hipleft
+  '#': keypoint_hipright
+  '$': keypoint_kneeleft
+  '%': keypoint_kneeright
+  '^': keypoint_ankleleft
+  '&': keypoint_ankleright
