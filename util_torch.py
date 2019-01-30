@@ -65,22 +65,19 @@ class ModuleConv_k3(torch.nn.Module):
     super(ModuleConv_k3, self).__init__()
     padding = dilation
     layers = []
-    ####
     layers.append( torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation) )
-    ####
-    if bn :
+    if bn:
       layers.append(torch.nn.BatchNorm2d(nc_out))
-    #####
     if not is_leaky:
       layers.append(torch.nn.ReLU(inplace=True))
     else:
       layers.append(torch.nn.LeakyReLU(inplace=True,negative_slope=0.2))
-    ####
     self.model = nn.Sequential(*layers)
     initialize_net(self)
 
   def forward(self, x):
     return self.model(x)
+
 
 class ModuleConv_k4_s2(torch.nn.Module):
   def __init__(self, nc_in, nc_out, is_leaky=False, bn=True):
