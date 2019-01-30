@@ -28,10 +28,12 @@ def main():
     if key == 32: # ' '
       video_pos += int(args.rate)
     if key == 102: # 'f'
-      video_pos += int(args.rate)*3
+      video_pos += int(args.rate)*4
+    if key == 103: # 'g'
+      video_pos += int(args.rate)*12
     if key == 113:  # 'q'
       exit()
-    if key == 115:
+    if key == 115: # 's'
       path_tmp = args.dist+ "/tmp.png"
       cv2.imwrite(path_tmp, frame)
       name_md5 = my_util.md5_hash(path_tmp)

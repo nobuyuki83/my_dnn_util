@@ -31,7 +31,7 @@ def main():
       ipath_img = (ipath_img+len(list_path_img)-1)%len(list_path_img)
     if key == 113:  # 'q'
       exit()
-    if key == 115:
+    if key == 115: # s
       ext = path_img.rsplit(".",1)[1]
       path_tmp = args.dist+ "/tmp."+ext
       cv2.imwrite(path_tmp, frame)
