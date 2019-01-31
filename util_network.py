@@ -183,22 +183,18 @@ class NetEncDec1_Dilated(torch.nn.Module):
     return x1
 
 
-class NetClassifier(torch.nn.Module):
+class NetDiscriminator(torch.nn.Module):
   def __init__(self, path_file: str):
-    super(NetClassifier, self).__init__()
+    super(NetDiscriminator, self).__init__()
     self.path_file = path_file
     self.nstride = 32
     self.layer = torch.nn.Sequential(
       my_torch.ModuleConv_k4_s2(  3,  64, is_leaky=True, bn=False),  # 1/8
-      my_torch.ModuleConv_k3(    64,  64, is_leaky=True), # 1/4
       my_torch.ModuleConv_k4_s2( 64, 128, is_leaky=True), # 1/8
-      my_torch.ModuleConv_k3(   128, 128, is_leaky=True), # 1/8
-      my_torch.ModuleConv_k3(   128, 128, is_leaky=True), # 1/8
       my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), # 1/16
-      my_torch.ModuleConv_k3(   256, 256, is_leaky=True), # 1/16
-      my_torch.ModuleConv_k4_s2(256, 256, is_leaky=True), # 1/32
+      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True), # 1/32
+      torch.nn.Conv2d(512, 1, kernel_size=1, padding=0, stride=1)
     )
-    self.fc1 = torch.nn.Linear(256,1)
     my_torch.initialize_net(self)
     ####
     if os.path.isfile(path_file):
@@ -208,8 +204,5 @@ class NetClassifier(torch.nn.Module):
 
   def forward(self, x0):
     x1 = self.layer(x0)
-    x3 = torch.nn.functional.avg_pool2d(x1, kernel_size=x1.size()[2:])
-    x3 = torch.squeeze(x3)
-    x4 = self.fc1(x3)
-    x5 = torch.sigmoid(x4)
-    return x5
+    x2 = torch.sigmoid(x1)
+    return x2

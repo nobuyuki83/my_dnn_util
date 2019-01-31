@@ -187,7 +187,7 @@ def img_pad_mag_center(img1, size, mag, cnt):
   return img3
 
 
-def view_batch(np_in, np_tg, nstride):
+def view_batch(np_in, np_tg, nstride, ratio=0.5):
   '''
   np_in = [nbatch,nh*npix,nw*npix,3]
   np_tg = [nbatch,nh,nw,nch]
@@ -209,7 +209,7 @@ def view_batch(np_in, np_tg, nstride):
       if itr*3+2 < nch_tg: np_tg1[:,:,2] = np_tg[ibatch,:,:,itr*3+2]
       np_tg1 = ((cv2.resize(np_tg1, None, fx=nstride, fy=nstride)) * 255.0).astype(numpy.uint8)
       np_tg1 = cv2.cvtColor(np_tg1,cv2.COLOR_RGB2BGR)
-      added_image = cv2.addWeighted(np_tg1, 0.9, np_in[ibatch], 0.3, 2.0)
+      added_image = cv2.addWeighted(np_tg1, ratio, np_in[ibatch], (1-ratio), 1.0)
       cv2.imshow("hoge", added_image.astype(numpy.uint8))
       cv2.waitKey(-1)
 
@@ -298,17 +298,17 @@ def list_annotated_or(list_path_json0, list_name_anno):
         list_path_json.append(path_json)
   return list_path_json
 
-def get_affine(dict_info, size_input, size_output):
+def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range=(0.8, 1,2)):
   dict_prsn = dict_info["person0"]
   scale = 16 / dict_prsn["face_rad"]
-  scale *= random.uniform(0.8, 1.2)
+  scale *= random.uniform(mag_range[0], mag_range[1])
   cnt = [size_input[0] * 0.5, + size_input[1] * 0.5]
   if "bbox" in dict_prsn:
     bbox = dict_prsn["bbox"]
     assert type(bbox) == list and len(bbox) == 4
     cnt[0] = bbox[0] + bbox[2] * 0.5
     cnt[1] = bbox[1] + bbox[3] * 0.5
-  rot = random.randint(-40, 40)
+  rot = random.randint(rot_range[0], rot_range[1])
   rot_mat = cv2.getRotationMatrix2D(tuple([cnt[0], cnt[1]]), rot, scale)
   rot_mat[0][2] += size_output[0] * 0.5 - cnt[0] + random.randint(int(-8 / scale), int(+8 / scale))
   rot_mat[1][2] += size_output[1] * 0.5 - cnt[1] + random.randint(int(-8 / scale), int(+8 / scale))
