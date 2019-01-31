@@ -3,6 +3,7 @@ from OpenGL.GLUT import *
 import cv2, glob, random, json, math, time, argparse, yaml
 import my_dnn_util.util as my_util
 import my_dnn_util.util_gl as my_gl
+import my_dnn_util.dsp_util as my_dsp
 
 ########################
 list_path_json = []
@@ -48,8 +49,8 @@ def display():
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
-  my_gl.draw_annotation_keypoint(dict_info[mode_prsn],dict_config['kp_draw_prop'])
-  my_gl.draw_annotation_bbox(dict_info[mode_prsn])
+  my_dsp.draw_annotation_keypoint(dict_info[mode_prsn],dict_config['kp_draw_prop'])
+  my_dsp.draw_annotation_bbox(dict_info[mode_prsn])
   ####
   glDisable(GL_TEXTURE_2D)
   glMatrixMode(GL_MODELVIEW)
@@ -152,7 +153,7 @@ def main():
   ####
   list_path_json = glob.glob(args.path_dir_img+"/*.json")
   random.shuffle(list_path_json)
-  list_path_json = my_util.arrange_old_new_json(list_path_json)
+  list_path_json = my_dsp.arrange_old_new_json(list_path_json)
   ind_list_path_json = 0
   load_img_info(0)
   ####
