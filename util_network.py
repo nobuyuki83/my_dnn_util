@@ -62,6 +62,7 @@ class UNet2(torch.nn.Module):
 
 
 
+
 class UNet1(torch.nn.Module):
   def __init__(self,nch_out:int,
                path_file: str):
