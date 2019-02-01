@@ -61,6 +61,49 @@ class UNet2(torch.nn.Module):
     return x5
 
 
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+class NetEncDec_s2_A(torch.nn.Module):
+  def __init__(self,nch_out:int,
+               path_file: str):
+    super(NetEncDec_s2_A, self).__init__()
+    self.path_file = path_file
+    self.nstride = 2
+    self.npix = 8
+    #####
+    self.model = torch.nn.Sequential(
+      torch.nn.Conv2d(3, 64, kernel_size=5, padding=2, stride=1),   # 1/1
+      my_torch.ResUnit_BRC_ResHalf_Cat(64, 128,is_separable=True),  # 1/2
+      my_torch.ResUnit_BRC_ResHalf_Cat(128, 256,is_separable=True), # 1/4
+      my_torch.ResUnit_BRC_ResHalf_Cat(256, 512,is_separable=True), # 1/8
+      my_torch.ResUnit_BRC_Btl(512,is_separable=True),
+      my_torch.ResUnit_BRC_Btl(512,is_separable=True),
+      my_torch.ResUnit_BRC_Btl(512,is_separable=True),
+      my_torch.ResUnit_BRC_Btl(512,is_separable=True),
+      my_torch.ResUnit_BRC_Btl(512,is_separable=True),
+      my_torch.ResUnit_BRC_Btl(512,is_separable=True),
+      my_torch.ResUnit_BRC_ResDouble_Cat(512,256,is_separable=True), # 1/4
+      my_torch.ResUnit_BRC_ResDouble_Cat(256,128,is_separable=True), # 1/2
+      torch.nn.BatchNorm2d(128),
+      torch.nn.ReLU(),
+      torch.nn.Conv2d(128, nch_out, kernel_size=5, padding=2, stride=1),
+      torch.nn.Sigmoid()
+    ) # out 1/2(3)
+    my_torch.initialize_net(self)
+    ####
+    if os.path.isfile(path_file):
+      self = my_torch.load_model_cpm(self, path_file)
+    if torch.cuda.is_available():
+      self = self.cuda()
+
+  def forward(self, x):
+    return self.model(x)
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 
 class UNet1(torch.nn.Module):
   def __init__(self,nch_out:int,
