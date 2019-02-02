@@ -52,7 +52,7 @@ def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range
   return rot_mat, scale
 
 
-def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop):
+def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop):
   face_rad = dict_info["person0"]["face_rad"]
   for ikey, key in enumerate(list_key):
     if key in dict_info["person0"]:
@@ -61,7 +61,21 @@ def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop):
       color0 = prop[0:3]
       rad0 = prop[3]*face_rad
       width = int(prop[4])
-      cv2.circle(np_img0, (int(pos_key[0]), int(pos_key[1])), int(rad0), color0, width)
+      cv2.circle(np_img0,
+                 (int(pos_key[0]), int(pos_key[1])), int(rad0), color0, width)
+
+  for edge in list_edge_prop:
+    key0 = edge[0]
+    key1 = edge[1]
+    if key0 in dict_info["person0"] and key1 in dict_info['person0']:
+      pos_key0 = dict_info["person0"][key0]
+      pos_key1 = dict_info["person0"][key1]
+      color0 = edge[2:5]
+      print(pos_key0,pos_key1,color0)
+      cv2.line(np_img0,
+               (int(pos_key0[0]), int(pos_key0[1])),
+               (int(pos_key1[0]), int(pos_key1[1])),
+               color0)
 
   if "bbox" in dict_info["person0"]:
     bbox = dict_info["person0"]["bbox"]
@@ -180,7 +194,7 @@ def draw_keypoint_line(dict_info,color,key0,key1):
     if not dict_info[key0][2] == 0 and not dict_info[key1][2] ==0:
       my_gl.drawLine(dict_info[key0],dict_info[key1],color,width=2)
 
-def draw_annotation_keypoint(dict_info, dict_kp_draw_prop):
+def draw_annotation_keypoint(dict_info, dict_kp_draw_prop,kp_edge_draw_prop):
   for key in dict_info:
     if not key.startswith('keypoint_'):
       continue
@@ -190,16 +204,10 @@ def draw_annotation_keypoint(dict_info, dict_kp_draw_prop):
     else:
       draw_keypoint_circle(dict_info, 0.1, (0,0,0), 2.0, key)
   ####
-  draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_shoulderleft","keypoint_elbowleft")
-  draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_shoulderright","keypoint_elbowright")
-  draw_keypoint_line(dict_info,(255,  0,255), "keypoint_elbowleft","keypoint_wristleft")
-  draw_keypoint_line(dict_info,(255,255,  0), "keypoint_elbowright","keypoint_wristright")
-  ####
-  draw_keypoint_line(dict_info,(  0,  0,255), "keypoint_hipleft","keypoint_kneeleft")
-  draw_keypoint_line(dict_info,(  0,255,  0), "keypoint_hipright","keypoint_kneeright")
-  draw_keypoint_line(dict_info,(255,  0,255), "keypoint_kneeleft","keypoint_ankleleft")
-  draw_keypoint_line(dict_info,(255,255,  0), "keypoint_kneeright","keypoint_ankleright")
-
+  for kp_edge in kp_edge_draw_prop:
+    draw_keypoint_line(dict_info, (kp_edge[2], kp_edge[3], kp_edge[4]), kp_edge[0], kp_edge[1])
+    print(kp_edge)
+    pass
 
 def draw_annotation_bbox(dict_info):
   if 'bbox' in dict_info:

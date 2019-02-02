@@ -49,7 +49,7 @@ def display():
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
-  my_dsp.draw_annotation_keypoint(dict_info[mode_prsn],dict_config['kp_draw_prop'])
+  my_dsp.draw_annotation_keypoint(dict_info[mode_prsn],dict_config['kp_draw_prop'],dict_config['kp_edge_draw_prop'])
   my_dsp.draw_annotation_bbox(dict_info[mode_prsn])
   ####
   glDisable(GL_TEXTURE_2D)

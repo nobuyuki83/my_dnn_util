@@ -207,7 +207,7 @@ class ResUnit_BRC_ResHalf_Cat(torch.nn.Module):
 
 
 class ResUnit_BRC_ResDouble(torch.nn.Module):
-  def __init__(self, nc_in,nc_out,is_separable):
+  def __init__(self, nc_in,nc_out,is_separable=False):
     super(ResUnit_BRC_ResDouble, self).__init__()
     ngroup = nc_out if is_separable else 1
     self.bn1 = torch.nn.BatchNorm2d(nc_in)

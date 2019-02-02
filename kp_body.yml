@@ -29,6 +29,17 @@ kp_draw_prop:
   keypoint_ankleleft: [255, 0,   0, 0.3, 2.0]
   keypoint_ankleright: [0, 255,   0, 0.3, 2.0]
 
+
+kp_edge_draw_prop:
+  - ["keypoint_shoulderleft","keypoint_elbowleft",0,0,255]
+  - ["keypoint_shoulderright","keypoint_elbowright",0,255,0]
+  - ["keypoint_elbowleft","keypoint_wristleft",255,0,255]
+  - ["keypoint_elbowright","keypoint_wristright",255,255,0]
+  - ["keypoint_hipleft","keypoint_kneeleft",0,0,255]
+  - ["keypoint_hipright","keypoint_kneeright",0,255,0]
+  - ["keypoint_kneeleft","keypoint_ankleleft",255,0,255]
+  - ["keypoint_kneeright","keypoint_ankleright",255,255,0]
+
 key2kp:
   '1': keypoint_head
   '2': keypoint_shoulderleft
