@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def np2pt(np_img,scale,requires_grad):
+def np2pt(np_img,scale,requires_grad=False):
   np_img0 = np_img.view()
   if np_img.ndim == 3:
     np_img0 = np_img.reshape([1]+list(np_img.shape))
