@@ -237,26 +237,26 @@ class ResUnit_BRC_ResHalf_Cat_A(torch.nn.Module):
     y = self.layer1(x)
     return torch.cat((y,x),1)
 
-class ResUnit_BRC_ResHalf_Cat_B(torch.nn.Module):
+class ResUnit_BRC_ResHalf_Add_B(torch.nn.Module):
   def __init__(self, nc, is_leaky=True, is_separable=True):
-    super(ResUnit_BRC_ResHalf_Cat_B, self).__init__()
+    super(ResUnit_BRC_ResHalf_Add_B, self).__init__()
     ngroup = nc if is_separable else 1
     ####
     layers = []
-    layers.append( torch.nn.Conv2d(nc, nc, kernel_size=3, padding=1, stride=1) )
     layers.append( torch.nn.BatchNorm2d(nc) )
     if is_leaky:
       layers.append( torch.nn.LeakyReLU(inplace=True,negative_slope=0.2) )
     else:
       layers.append( torch.nn.ReLU(inplace=True) )
-    layers.append( torch.nn.Conv2d(nc, nc, kernel_size=4, padding=1, stride=2, groups=ngroup) )
+    layers.append( torch.nn.Conv2d(nc, nc*2, kernel_size=4, padding=1, stride=2, groups=ngroup) )
     self.layer0 = nn.Sequential(*layers)
     initialize_net(self)
 
   def forward(self, x0):
     x1 = torch.nn.functional.avg_pool2d(x0,kernel_size=2,stride=2)
     y = self.layer0(x0)
-    return torch.cat((y,x1),1)
+    return y + torch.cat((x1,x1),1)
+
 
 class ResUnit_BRC_ResHalf_Add_C(torch.nn.Module):
   def __init__(self, nc, is_separable=False, is_leaky=True):
@@ -264,7 +264,6 @@ class ResUnit_BRC_ResHalf_Add_C(torch.nn.Module):
     ngroup = nc if is_separable else 1
     ####
     layers = []
-    layers.append( torch.nn.Conv2d(nc, nc, kernel_size=3, padding=1, stride=1) )
     layers.append( torch.nn.BatchNorm2d(nc) )
     if is_leaky:
       layers.append( torch.nn.LeakyReLU(inplace=True,negative_slope=0.2) )

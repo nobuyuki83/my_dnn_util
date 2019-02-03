@@ -337,16 +337,13 @@ class NetDiscriminator256_A(torch.nn.Module):
     self.nstride = 32
     self.layer0 = torch.nn.Sequential(
       torch.nn.Conv2d(3, 64, kernel_size=4, padding=1, stride=2), # 1/2
-      my_torch.ResUnit_BRC_ResHalf_Cat_B( 64, is_leaky=True, is_separable=True),  # 1/4
-      my_torch.ResUnit_BRC_ResHalf_Cat_B(128, is_leaky=True, is_separable=True),  # 1/8
-      my_torch.ResUnit_BRC_ResHalf_Cat_B(256, is_leaky=True, is_separable=True),  # 1/16
+      my_torch.ResUnit_BRC_ResHalf_Add_B( 64, is_leaky=True, is_separable=True),  # 1/4
+      my_torch.ResUnit_BRC_ResHalf_Add_B(128, is_leaky=True, is_separable=True),  # 1/8
+      my_torch.ResUnit_BRC_ResHalf_Add_B(256, is_leaky=True, is_separable=True),  # 1/16
       my_torch.ResUnit_BRC_ResHalf_Add_C(512, is_leaky=True, is_separable=True),  # 1/32
-      my_torch.ResUnit_BRC_ResHalf_Add_C(512, is_leaky=True, is_separable=True),  # 1/64
       torch.nn.BatchNorm2d(512),
-      torch.nn.LeakyReLU(inplace=True,negative_slope=0.2)
-    )
-    self.layer1 = torch.nn.Sequential(
-      torch.nn.Linear(512*4*4,1),
+      torch.nn.LeakyReLU(inplace=True,negative_slope=0.2),
+      torch.nn.Conv2d(512, 1, kernel_size=1, padding=0, stride=1),
       torch.nn.Sigmoid()
     )
     my_torch.initialize_net(self)
@@ -361,9 +358,7 @@ class NetDiscriminator256_A(torch.nn.Module):
     assert len(x0.shape) == 4
     assert list(x0.shape[1:]) == [3,256,256]
     x1 = self.layer0(x0)
-    x1 = x1.view((x0.shape[0],-1))
-    x2 = self.layer1(x1)
-    return x2
+    return x1
 
 
 class Net_VGG16(torch.nn.Module):
@@ -385,8 +380,8 @@ class Net_VGG16(torch.nn.Module):
     self.conv3_3 = torch.nn.Conv2d(256,256,kernel_size=3,stride=1,padding=1)
     self.conv3_4 = torch.nn.Conv2d(256,256,kernel_size=3,stride=1,padding=1)
     ####
-    self.conv4_1 = torch.nn.Conv2d(256,512,kernel_size=3,stride=1,padding=1)
-    self.conv4_2 = torch.nn.Conv2d(512,512,kernel_size=3,stride=1,padding=1)
+#    self.conv4_1 = torch.nn.Conv2d(256,512,kernel_size=3,stride=1,padding=1)
+#    self.conv4_2 = torch.nn.Conv2d(512,512,kernel_size=3,stride=1,padding=1)
 
 
     self.conv1_1.weight = torch.nn.Parameter(vgg_state_dict[vgg_keys[0]])
@@ -408,11 +403,8 @@ class Net_VGG16(torch.nn.Module):
     self.conv3_4.weight = torch.nn.Parameter(vgg_state_dict[vgg_keys[14]])
     self.conv3_4.bias = torch.nn.Parameter(vgg_state_dict[vgg_keys[15]])
     ####
-    self.conv4_1.weight = torch.nn.Parameter(vgg_state_dict[vgg_keys[16]])
-    self.conv4_2.bias = torch.nn.Parameter(vgg_state_dict[vgg_keys[17]])
-
-    for param in self.parameters():
-      param.requires_grad = False
+#    self.conv4_1.weight = torch.nn.Parameter(vgg_state_dict[vgg_keys[16]])
+#    self.conv4_2.bias = torch.nn.Parameter(vgg_state_dict[vgg_keys[17]])
 
     if torch.cuda.is_available():
       self = self.cuda()
@@ -444,18 +436,20 @@ class Net_VGG16(torch.nn.Module):
     x3 = torch.nn.functional.relu(self.conv3_2(x3))
     x3 = torch.nn.functional.relu(self.conv3_3(x3))
     x3 = torch.nn.functional.relu(self.conv3_4(x3))
-
+    '''
     x4 = torch.nn.functional.max_pool2d(x3,kernel_size=2,stride=2)
     x4 = torch.nn.functional.relu(self.conv4_1(x4))
     x4 = torch.nn.functional.relu(self.conv4_2(x4))
+    '''
+#    x1 = x1/(x1.shape[1]*x1.shape[2]*x1.shape[3])
+#    x2 = x2/(x2.shape[1]*x2.shape[2]*x2.shape[3])
+#    x3 = x3/(x3.shape[1]*x3.shape[2]*x3.shape[3])
+#    x4 = x4/(x4.shape[1]*x4.shape[2]*x4.shape[3])
+#    return x1,x2,x3,x4
+    return x1,x2,x3
 
-    x1 = x1/(x1.shape[1]*x1.shape[2]*x1.shape[3])
-    x2 = x2/(x2.shape[1]*x2.shape[2]*x2.shape[3])
-    x3 = x3/(x3.shape[1]*x3.shape[2]*x3.shape[3])
-    x4 = x4/(x4.shape[1]*x4.shape[2]*x4.shape[3])
-    return x1,x2,x3,x4
-
-
-
-
-
+  def mseloss(self,x0,y0):
+    l0 = torch.nn.functional.mse_loss(x0[0],y0[0])
+    l1 = torch.nn.functional.mse_loss(x0[1],y0[1])
+    l2 = torch.nn.functional.mse_loss(x0[2],y0[2])
+    return l0+l1+l2
