@@ -36,6 +36,15 @@ def initialize_net(net):
       m.weight.data.fill_(1)
       m.bias.data.zero_()
 
+def get_mask_ratio_vpt(x0:torch.autograd.Variable):
+  nbatch = x0.shape[0]
+  out = torch.autograd.Variable(torch.zeros((nbatch,1,8,8)),requires_grad=False)
+  for ib in range(x0.shape[0]):
+    for i in range(8):
+      for j in range(8):
+        crop = x0[ib][:,i*32:(i+1)*32,j*32:(j+1)*32]
+        out[ib][0][i][j] = 1-crop.mean()
+  return out
 
 class ResUnit_BRC_Btl(torch.nn.Module):
   def __init__(self, nc, is_separable=False):

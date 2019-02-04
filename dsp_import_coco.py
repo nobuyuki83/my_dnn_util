@@ -2,6 +2,77 @@ import os, json, cv2, sys
 sys.path.append('../pose_estimation')
 import util
 
+
+def coco_get_image_annotation(path_json):
+  dict_info = json.load(open(path_json))
+  print(dict_info.keys())
+  list_keypoint = (dict_info['categories'][0])['keypoints']
+  print(list_keypoint)
+  ####
+  list_images = dict_info["images"]
+  dict_imgid2iimg= {}
+  for iimg,img in enumerate(list_images):
+    id0 = int(img['id'])
+    dict_imgid2iimg[id0] = iimg
+  ####
+  dict_iimg2ianno = {}
+  for ianno,anno in enumerate(dict_info["annotations"]):
+    imgid0 = int(anno["image_id"])
+    iimg0 = dict_imgid2iimg[imgid0]
+    if not iimg0 in dict_iimg2ianno:
+      dict_iimg2ianno[iimg0] = [ianno]
+    else:
+      dict_iimg2ianno[iimg0].append(ianno)
+
+  for iimg,img in enumerate(list_images):
+    if not iimg in dict_iimg2ianno:
+      continue
+    if not len(dict_iimg2ianno[iimg]) == 1:
+      continue
+
+  list_imginfo_anno = []
+  for iimg, img in enumerate(list_images):
+    if not iimg in dict_iimg2ianno:
+      continue
+    if not len(dict_iimg2ianno[iimg]) == 1:
+      continue
+    ####
+    ianno = dict_iimg2ianno[iimg][0] # only one annotation for this image
+    anno = dict_info['annotations'][ianno]
+    list_imginfo_anno.append([img,anno])
+  return list_imginfo_anno
+
+
+def coco_get_dict_info(imginfo,anno,list_keypoint_name):
+#  file_name = imginfo['file_name']
+  keypoints = list(map(lambda x: int(x), anno['keypoints']))
+  np_sgm = []
+  list_sgm = []
+  for iseg, seg in enumerate(anno['segmentation']):
+    seg0 = numpy.array(seg, numpy.int32).reshape((-1, 2))
+    np_sgm.append(seg0)
+    list_sgm.append(list(map(lambda x: int(x), seg)))
+  bbox = list(map(lambda x: int(x), anno['bbox']))
+  #print(imginfo)
+#  print(anno)
+#  print(bbox)
+  ####
+  dict_out = {}
+  dict_out['coco_id'] = imginfo['id']
+  dict_out["person0"] = {}
+  dict_out["person0"]['face_rad'] = 40
+  dict_out["person0"]['bbox'] = bbox
+  dict_out["person0"]['segmentation'] = list_sgm
+  assert len(keypoints) % 3 == 0
+  for ip in range(len(keypoints) // 3):
+    if keypoints[ip * 3 + 2] == 0:
+      continue
+    x0 = keypoints[ip * 3 + 0]
+    y0 = keypoints[ip * 3 + 1]
+    dict_out['person0'][list_keypoint_name[ip]] = [x0, y0, keypoints[ip * 3 + 2]]
+  return dict_out
+
+
 def main():
   list_keypoint_name = [
     'keypoint_nose',

@@ -79,6 +79,40 @@ def get_img_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
   return np_anno0
 
 
+def input_kp_assembled(list_name_kp, dict_info, shape_img_out, rot_mat, shape_img_in, mask_size):
+  np_anno0 = numpy.zeros((shape_img_out[0], shape_img_out[1]), dtype=numpy.uint8)
+  for ikp, name_kp in enumerate(list_name_kp):
+    if not name_kp in dict_info["person0"]:
+      continue
+    x, y, _ = dict_info["person0"][name_kp]
+    list_loop = [my_util.get_random_polygon(x, y, mask_size)]
+    list_np_seg = my_util.cv2_get_numpy_loop_array(list_loop)
+    np_mask0 = numpy.zeros((shape_img_in[0], shape_img_in[1]), dtype=numpy.uint8)
+    cv2.fillPoly(np_mask0, list_np_seg, color=1.0)
+    np_mask0 = cv2.warpAffine(np_mask0, rot_mat, shape_img_out, flags=cv2.INTER_CUBIC)
+    np_anno0 = np_anno0 + np_mask0 - np_anno0 * np_mask0  # computing or
+  np_anno0 = np_anno0.reshape(1, shape_img_out[0], shape_img_out[1], 1)
+  return np_anno0
+
+
+def input_seg_assembled(list_name_seg, dict_info, shape_img_out, rot_mat, shape_img_in):
+  np_anno0 = numpy.zeros((shape_img_out[0], shape_img_out[1]), dtype=numpy.uint8)
+  for iseg, name_seg in enumerate(list_name_seg):
+    if not name_seg in dict_info["person0"]:
+      continue
+    list_loop = dict_info["person0"][name_seg]
+    list_np_seg = my_util.cv2_get_numpy_loop_array(list_loop)
+    np_mask0 = numpy.zeros((shape_img_in[0], shape_img_in[1]), dtype=numpy.uint8)
+    cv2.fillPoly(np_mask0, list_np_seg, color=1.0)
+    np_mask0 = cv2.warpAffine(np_mask0, rot_mat, shape_img_out, flags=cv2.INTER_CUBIC)
+    np_anno0[:, :] = np_anno0 + np_mask0 - np_anno0 * np_mask0  # computing or
+  np_anno0 = np_anno0.reshape(1, shape_img_out[0], shape_img_out[1], 1)
+  return np_anno0
+
+
+#############################################################################################################################
+
+
 def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop):
   face_rad = dict_info["person0"]["face_rad"]
   for ikey, key in enumerate(list_key):
@@ -116,77 +150,6 @@ def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop)
       np_sgm = numpy.array(seg,dtype=numpy.int)
       np_sgm = np_sgm.reshape((-1,2))
       cv2.polylines(np_img0, [np_sgm], True, (0, 255, 255))
-
-
-def coco_get_image_annotation(path_json):
-  dict_info = json.load(open(path_json))
-  print(dict_info.keys())
-  list_keypoint = (dict_info['categories'][0])['keypoints']
-  print(list_keypoint)
-  ####
-  list_images = dict_info["images"]
-  dict_imgid2iimg= {}
-  for iimg,img in enumerate(list_images):
-    id0 = int(img['id'])
-    dict_imgid2iimg[id0] = iimg
-  ####
-  dict_iimg2ianno = {}
-  for ianno,anno in enumerate(dict_info["annotations"]):
-    imgid0 = int(anno["image_id"])
-    iimg0 = dict_imgid2iimg[imgid0]
-    if not iimg0 in dict_iimg2ianno:
-      dict_iimg2ianno[iimg0] = [ianno]
-    else:
-      dict_iimg2ianno[iimg0].append(ianno)
-
-  for iimg,img in enumerate(list_images):
-    if not iimg in dict_iimg2ianno:
-      continue
-    if not len(dict_iimg2ianno[iimg]) == 1:
-      continue
-
-  list_imginfo_anno = []
-  for iimg, img in enumerate(list_images):
-    if not iimg in dict_iimg2ianno:
-      continue
-    if not len(dict_iimg2ianno[iimg]) == 1:
-      continue
-    ####
-    ianno = dict_iimg2ianno[iimg][0] # only one annotation for this image
-    anno = dict_info['annotations'][ianno]
-    list_imginfo_anno.append([img,anno])
-  return list_imginfo_anno
-
-
-def coco_get_dict_info(imginfo,anno,list_keypoint_name):
-#  file_name = imginfo['file_name']
-  keypoints = list(map(lambda x: int(x), anno['keypoints']))
-  np_sgm = []
-  list_sgm = []
-  for iseg, seg in enumerate(anno['segmentation']):
-    seg0 = numpy.array(seg, numpy.int32).reshape((-1, 2))
-    np_sgm.append(seg0)
-    list_sgm.append(list(map(lambda x: int(x), seg)))
-  bbox = list(map(lambda x: int(x), anno['bbox']))
-  #print(imginfo)
-#  print(anno)
-#  print(bbox)
-  ####
-  dict_out = {}
-  dict_out['coco_id'] = imginfo['id']
-  dict_out["person0"] = {}
-  dict_out["person0"]['face_rad'] = 40
-  dict_out["person0"]['bbox'] = bbox
-  dict_out["person0"]['segmentation'] = list_sgm
-  assert len(keypoints) % 3 == 0
-  for ip in range(len(keypoints) // 3):
-    if keypoints[ip * 3 + 2] == 0:
-      continue
-    x0 = keypoints[ip * 3 + 0]
-    y0 = keypoints[ip * 3 + 1]
-    dict_out['person0'][list_keypoint_name[ip]] = [x0, y0, keypoints[ip * 3 + 2]]
-  return dict_out
-
 
 def arrange_old_new_json(list_path_json):
   dict_bn_time = {}
