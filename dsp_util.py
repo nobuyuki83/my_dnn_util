@@ -71,7 +71,6 @@ def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop)
       pos_key0 = dict_info["person0"][key0]
       pos_key1 = dict_info["person0"][key1]
       color0 = edge[2:5]
-      print(pos_key0,pos_key1,color0)
       cv2.line(np_img0,
                (int(pos_key0[0]), int(pos_key0[1])),
                (int(pos_key1[0]), int(pos_key1[1])),
@@ -206,8 +205,6 @@ def draw_annotation_keypoint(dict_info, dict_kp_draw_prop,kp_edge_draw_prop):
   ####
   for kp_edge in kp_edge_draw_prop:
     draw_keypoint_line(dict_info, (kp_edge[2], kp_edge[3], kp_edge[4]), kp_edge[0], kp_edge[1])
-    print(kp_edge)
-    pass
 
 def draw_annotation_bbox(dict_info):
   if 'bbox' in dict_info:
