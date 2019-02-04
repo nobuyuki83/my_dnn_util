@@ -1,12 +1,11 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-import cv2, glob, random, json, time, sys, shutil, argparse, yaml
+import cv2, glob, random, json, time, argparse, yaml
 
-#sys.path.append('delfem2/module_py')
-#import dfm2
 import my_dnn_util.util as my_util
 import my_dnn_util.util_gl as my_gl
-#import models
+import my_dnn_util.dsp_util as my_dsp
+
 
 ########################
 list_path_json = []
@@ -27,7 +26,7 @@ def load_img_info(ioffind):
   nimg = len(list_path_json)
   ind_list_path_json = (ind_list_path_json + ioffind + nimg) % nimg
   path_img0 = my_util.path_img_same_name(list_path_json[ind_list_path_json])
-  print(path_img0)
+  print(ind_list_path_json,path_img0)
   #####
   id_tex_org = img_size_info[4]
   if id_tex_org is not None and glIsTexture(id_tex_org):
@@ -57,11 +56,11 @@ def display():
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
-  my_gl.draw_annotation_bbox(dict_info["person0"])
-  my_gl.draw_annotation_segmentation(dict_info["person0"],
+  my_dsp.draw_annotation_bbox(dict_info["person0"])
+  my_dsp.draw_annotation_segmentation(dict_info["person0"],
                                      selected_loop=iloop_selected,
                                      name_seg=name_seg)
-  my_gl.draw_keypoint_circle(dict_info["person0"],1.0,(255,  0,  0),2,"keypoint_head")
+  my_dsp.draw_keypoint_circle(dict_info["person0"],1.0,(255,  0,  0),2,"keypoint_head")
 #  util.draw_annotation_keypoint(dict_info["person0"])
   ####
   glDisable(GL_TEXTURE_2D)
@@ -236,12 +235,11 @@ def main():
   dict_config = yaml.load(open(args.path_conf_yml, "r"))
   list_name_seg = dict_config['list_name_seg']
   print(list_name_seg)
-#  modelseg = models.CSegBody()
   list_path_json = glob.glob(args.path_dir_img+"/*.json")
-  list_path_json_annotated = my_util.list_annotated_and(list_path_json, list_name_seg)
+  list_path_json_annotated = my_dsp.list_annotated_and(list_path_json, list_name_seg)
   print(len(list_path_json_annotated),"/",len(list_path_json))
   random.shuffle(list_path_json)
-  list_path_json = my_util.arrange_old_new_json(list_path_json)
+  list_path_json = my_dsp.arrange_old_new_json(list_path_json)
   print(list_path_json)
   ind_list_path_json = 0
   load_img_info(0)
