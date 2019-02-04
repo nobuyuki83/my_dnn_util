@@ -66,7 +66,7 @@ def input_kp(list_name_kp,dict_info,size_img_out,rot_mat,gauss_rad):
                            dx0, dy0, gauss_rad)
   return np_wht0
 
-def input_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
+def input_seg(list_name_seg, dict_info, size_img_out, rot_mat, size_img_in):
   nch_out = len(list_name_seg)
   np_anno0 = numpy.zeros((1, size_img_out[0], size_img_out[1], nch_out), dtype=numpy.uint8)
   for iseg, name_seg in enumerate(list_name_seg):
@@ -75,7 +75,7 @@ def input_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
     np_mask0 = numpy.zeros(size_img_in, dtype=numpy.uint8)
     cv2.fillPoly(np_mask0, list_np_seg, color=1.0)
     np_mask0 = cv2.warpAffine(np_mask0, rot_mat, size_img_out, flags=cv2.INTER_CUBIC)
-    np_anno0[0][:, :, iseg] = np_mask0
+    np_anno0[0, :, :, iseg] = np_mask0
   return np_anno0
 
 
