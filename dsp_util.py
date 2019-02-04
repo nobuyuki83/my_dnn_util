@@ -66,7 +66,7 @@ def get_img_kp(list_name_kp,dict_info, size_img_out,rot_mat,dist_size):
                            dx0, dy0, dist_size)
   return np_wht0
 
-def get_img_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
+def input_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
   nch_out = len(list_name_seg)
   np_anno0 = numpy.zeros((1, size_img_out[0], size_img_out[1], nch_out), dtype=numpy.uint8)
   for iseg, name_seg in enumerate(list_name_seg):
