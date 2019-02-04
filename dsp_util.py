@@ -2,6 +2,7 @@ import cv2, numpy, json, time, random
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import my_dnn_util.util_gl as my_gl
+import my_dnn_util.util as my_util
 
 #######################################################################################################################
 #######################################################################################################################
@@ -51,6 +52,23 @@ def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range
   rot_mat[1][2] += size_output[1] * 0.5 - cnt[1] + random.randint(int(-8 / scale), int(+8 / scale))
   return rot_mat, scale
 
+def get_img_kp(list_name_kp,dict_info, size_img_out,rot_mat,nstride,dist_size):
+  nch_out = len(list_name_kp)
+  nblk_h = size_img_out[0]//nstride
+  nblk_w = size_img_out[1]//nstride
+  np_wht0 = numpy.zeros((1,nblk_h,nblk_w, nch_out), dtype=numpy.float32)
+  dict_prsn = dict_info["person0"]
+  for ikey, key in enumerate(list_name_kp):
+    if not key in dict_prsn: continue
+    if not dict_prsn[key][2] == 2: continue
+    cx0, cy0, iflg = dict_prsn[key]
+    dx0 = rot_mat[0][0] * cx0 + rot_mat[0][1] * cy0 + rot_mat[0][2]
+    dy0 = rot_mat[1][0] * cx0 + rot_mat[1][1] * cy0 + rot_mat[1][2]
+    my_util.gauss_keypoint(np_wht0[0], ikey,
+                           dx0 / nstride,
+                           dy0 / nstride,
+                           dist_size / nstride)
+  return np_wht0
 
 def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop):
   face_rad = dict_info["person0"]["face_rad"]
