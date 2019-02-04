@@ -52,7 +52,7 @@ def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range
   rot_mat[1][2] += size_output[1] * 0.5 - cnt[1] + random.randint(int(-8 / scale), int(+8 / scale))
   return rot_mat, scale
 
-def get_img_kp(list_name_kp,dict_info, size_img_out,rot_mat,dist_size):
+def input_kp(list_name_kp,dict_info,size_img_out,rot_mat,gauss_rad):
   nch_out = len(list_name_kp)
   np_wht0 = numpy.zeros((1,size_img_out[0],size_img_out[1], nch_out), dtype=numpy.float32)
   dict_prsn = dict_info["person0"]
@@ -63,7 +63,7 @@ def get_img_kp(list_name_kp,dict_info, size_img_out,rot_mat,dist_size):
     dx0 = rot_mat[0][0] * cx0 + rot_mat[0][1] * cy0 + rot_mat[0][2]
     dy0 = rot_mat[1][0] * cx0 + rot_mat[1][1] * cy0 + rot_mat[1][2]
     my_util.gauss_keypoint(np_wht0[0], ikey,
-                           dx0, dy0, dist_size)
+                           dx0, dy0, gauss_rad)
   return np_wht0
 
 def get_img_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
