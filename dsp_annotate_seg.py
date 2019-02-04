@@ -228,11 +228,11 @@ def main():
   ####
   parser = argparse.ArgumentParser(description="train convolutional pose machine",
                                    add_help=True)
-  parser.add_argument('--path_conf_yml', help='input yml file')
+  parser.add_argument('--path_yml', help='input yml file')
   parser.add_argument('--path_dir_img', help='input image dire')
   args = parser.parse_args()
   ####
-  dict_config = yaml.load(open(args.path_conf_yml, "r"))
+  dict_config = yaml.load(open(args.path_yml, "r"))
   list_name_seg = dict_config['list_name_seg']
   print(list_name_seg)
   list_path_json = glob.glob(args.path_dir_img+"/*.json")

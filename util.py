@@ -244,7 +244,7 @@ def get_peaks(list_key,np_out0,mag):
 def get_segmentation_color_img(np_out0,
                               np_in0,
                               nstride:int):
-  print(np_in0.shape, np_out0.shape)
+#  print(np_in0.shape, np_out0.shape)
   shape_np_out0 = np_out0.shape
   np_out0 = cv2.resize(np_out0, None, fx=nstride, fy=nstride)
   if shape_np_out0[2] == 1:
@@ -253,7 +253,7 @@ def get_segmentation_color_img(np_out0,
   ###
   np_res0 = np_in0.astype(numpy.float)
   mask_body = np_out0[:, :, 0]
-  print(mask_body.shape)
+#  print(mask_body.shape)
   np_res0[:, :, 0] = np_res0[:, :, 0] * mask_body
   np_res0[:, :, 1] = np_res0[:, :, 1] * mask_body
   np_res0[:, :, 2] = np_res0[:, :, 2] * mask_body

@@ -70,6 +70,19 @@ def get_img_kp(list_name_kp,dict_info, size_img_out,rot_mat,nstride,dist_size):
                            dist_size / nstride)
   return np_wht0
 
+def get_img_seg(list_name_seg, dict_info, size_img_in, size_img_out, rot_mat):
+  nch_out = len(list_name_seg)
+  np_anno0 = numpy.zeros((1, size_img_out[0], size_img_out[1], nch_out), dtype=numpy.uint8)
+  for iseg, name_seg in enumerate(list_name_seg):
+    list_loop = dict_info["person0"][name_seg]
+    list_np_seg = my_util.cv2_get_numpy_loop_array(list_loop)
+    np_mask0 = numpy.zeros(size_img_in, dtype=numpy.uint8)
+    cv2.fillPoly(np_mask0, list_np_seg, color=1.0)
+    np_mask0 = cv2.warpAffine(np_mask0, rot_mat, size_img_out, flags=cv2.INTER_CUBIC)
+    np_anno0[0][:, :, iseg] = np_mask0
+  return np_anno0
+
+
 def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop):
   face_rad = dict_info["person0"]["face_rad"]
   for ikey, key in enumerate(list_key):
