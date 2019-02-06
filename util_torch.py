@@ -3,13 +3,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-def np2pt(np_img,scale,requires_grad=False):
+def np2pt(np_img,scale,offset,requires_grad=False):
   np_img0 = np_img.view()
   if np_img.ndim == 3:
     np_img0 = np_img.reshape([1]+list(np_img.shape))
   if np_img.ndim == 2:
     np_img0 = np_img.reshape(tuple([1]+list(np_img.shape)+[1]))
-  pt_img = torch.from_numpy(numpy.moveaxis(np_img0, 3, 1).astype(numpy.float32)*scale)
+  pt_img = torch.from_numpy(numpy.moveaxis(np_img0, 3, 1).astype(numpy.float32)*scale+offset)
   vpt_img = torch.autograd.Variable(pt_img, requires_grad=requires_grad)
   if torch.cuda.is_available():
     vpt_img = vpt_img.cuda()
@@ -51,9 +51,9 @@ def get_mask_ratio_vpt(x0:torch.autograd.Variable):
 #####################################################
 
 
-class ModuleConv_k3(torch.nn.Module):
+class ModuleCBR_k3(torch.nn.Module):
   def __init__(self, nc_in, nc_out,dilation=1, is_leaky=False, bn=True):
-    super(ModuleConv_k3, self).__init__()
+    super(ModuleCBR_k3, self).__init__()
     padding = dilation
     layers = []
     layers.append( torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation) )
@@ -70,9 +70,9 @@ class ModuleConv_k3(torch.nn.Module):
     return self.model(x)
 
 
-class ModuleConv_k4_s2(torch.nn.Module):
+class ModuleCBR_k4s2(torch.nn.Module):
   def __init__(self, nc_in, nc_out, is_leaky=False, bn=True):
-    super(ModuleConv_k4_s2, self).__init__()
+    super(ModuleCBR_k4s2, self).__init__()
     layers = []
     layers.append(torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2))
     if bn:
@@ -88,9 +88,9 @@ class ModuleConv_k4_s2(torch.nn.Module):
     return self.model(x)
 
 
-class ModuleDeconv_k4_s2(torch.nn.Module):
+class ModuleCBR_Double_k4_s2(torch.nn.Module):
   def __init__(self, nc_in, nc_out):
-    super(ModuleDeconv_k4_s2, self).__init__()
+    super(ModuleCBR_Double_k4_s2, self).__init__()
     self.model = torch.nn.Sequential(
       torch.nn.ConvTranspose2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
       torch.nn.BatchNorm2d(nc_out),
@@ -102,52 +102,9 @@ class ModuleDeconv_k4_s2(torch.nn.Module):
     return self.model(x)
 
 
-#####################################################
-
-
-class ResUnit_BRC_Btl(torch.nn.Module):
-  def __init__(self, nc, is_separable=False):
-    super(ResUnit_BRC_Btl, self).__init__()
-    assert nc%2 == 0
-    nh = nc//2
-    ngroup = nh if is_separable else 1
-    self.net = torch.nn.Sequential(
-      torch.nn.BatchNorm2d(nc),
-      torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nc, nh, kernel_size=1),
-      torch.nn.BatchNorm2d(nh),
-      torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nh, nh, kernel_size=3, padding=1, groups=ngroup),
-      torch.nn.BatchNorm2d(nh),
-      torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nh, nc, kernel_size=1),
-    )
-    initialize_net(self)
-
-  def forward(self, x):
-    return self.net(x)+x
-
-class ResUnit_BRC_Mob(torch.nn.Module):
-  def __init__(self, nc, nc_in_group=-1):
-    super(ResUnit_BRC_Mob, self).__init__()
-    groups = nc if nc_in_group == -1 else nc//nc_in_group
-    self.net = torch.nn.Sequential(
-      torch.nn.BatchNorm2d(nc),
-      torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nc, nc, kernel_size=1),
-      torch.nn.BatchNorm2d(nc),
-      torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nc, nc, kernel_size=3, padding=1, groups=groups),
-    )
-    initialize_net(self)
-
-  def forward(self, x):
-    return self.net(x)+x
-
-
-class NetUnit_Res(torch.nn.Module):
+class ModuleCBR_ResAdd(torch.nn.Module):
   def __init__(self, nc):
-    super(NetUnit_Res, self).__init__()
+    super(ModuleCBR_ResAdd, self).__init__()
     self.model = torch.nn.Sequential(
       torch.nn.Conv2d(nc, nc, kernel_size=3, padding=1),
       torch.nn.BatchNorm2d(nc),
@@ -162,9 +119,70 @@ class NetUnit_Res(torch.nn.Module):
     return x+self.model(x)
 
 
-class ResUnit_BRC(torch.nn.Module):
+###################################################
+
+
+class ModuleBRC_k3(torch.nn.Module):
+  def __init__(self, nc_in, nc_out,dilation=1, is_leaky=False, bn=True):
+    super(ModuleBRC_k3, self).__init__()
+    padding = dilation
+    layers = []
+    if bn:
+      layers.append(torch.nn.BatchNorm2d(nc_out))
+    if not is_leaky:
+      layers.append(torch.nn.ReLU(inplace=True))
+    else:
+      layers.append(torch.nn.LeakyReLU(inplace=True,negative_slope=0.2))
+    layers.append( torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation) )
+    self.model = nn.Sequential(*layers)
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
+
+class ModuleBRC_ResBtl(torch.nn.Module):
+  def __init__(self, nc, nc_in_group=-1):
+    super(ModuleBRC_ResBtl, self).__init__()
+    assert nc%2 == 0
+    nh = nc//2
+    groups = 1 if nc_in_group == -1 else nh//nc_in_group
+    self.net = torch.nn.Sequential(
+      torch.nn.BatchNorm2d(nc),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nc, nh, kernel_size=1),
+      torch.nn.BatchNorm2d(nh),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nh, nh, kernel_size=3, padding=1, groups=groups),
+      torch.nn.BatchNorm2d(nh),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nh, nc, kernel_size=1),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.net(x)+x
+
+class ModuleBRC_Mob(torch.nn.Module):
+  def __init__(self, nc, nc_in_group=-1):
+    super(ModuleBRC_Mob, self).__init__()
+    groups = 1 if nc_in_group == -1 else nc//nc_in_group
+    self.net = torch.nn.Sequential(
+      torch.nn.BatchNorm2d(nc),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nc, nc, kernel_size=1),
+      torch.nn.BatchNorm2d(nc),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(nc, nc, kernel_size=3, padding=1, groups=groups),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.net(x)
+
+
+class ModuleBRC_ResAdd(torch.nn.Module):
   def __init__(self, nc):
-    super(ResUnit_BRC, self).__init__()
+    super(ModuleBRC_ResAdd, self).__init__()
     self.model = torch.nn.Sequential(
       torch.nn.BatchNorm2d(nc),
       torch.nn.ReLU(inplace=True),
@@ -181,10 +199,28 @@ class ResUnit_BRC(torch.nn.Module):
 
 #############################################################################################
 
-class ResUnit_BRC_ResHalf(torch.nn.Module):
-  def __init__(self, nc_in, nc_out, is_separable=False):
-    super(ResUnit_BRC_ResHalf, self).__init__()
-    ngroup = nc_out if is_separable else 1
+class ModuleBRC_Half_k4s2(torch.nn.Module):
+  def __init__(self, nc_in, nc_out, is_leaky=False, bn=True):
+    super(ModuleBRC_Half_k4s2, self).__init__()
+    layers = []
+    if bn:
+      layers.append(torch.nn.BatchNorm2d(nc_in))
+    if not is_leaky:
+      layers.append( torch.nn.ReLU(inplace=True) )
+    else:
+      layers.append(torch.nn.LeakyReLU(inplace=True, negative_slope=0.2))
+    layers.append(torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2))
+    self.model = nn.Sequential(*layers)
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
+
+
+class ModuleBRC_Half_ResAdd(torch.nn.Module):
+  def __init__(self, nc_in, nc_out, nc_in_group=-1, pool_type="ave"):
+    super(ModuleBRC_Half_ResAdd, self).__init__()
+    ngroup = 1 if nc_in_group==-1 else nc_out//nc_in_group
     self.bn1 = torch.nn.BatchNorm2d(nc_in)
     self.conv1 = torch.nn.Conv2d(nc_in, nc_out, kernel_size=1, padding=0, stride=1)
     ###
@@ -194,34 +230,16 @@ class ResUnit_BRC_ResHalf(torch.nn.Module):
       torch.nn.ReLU(inplace=True),
       torch.nn.Conv2d(nc_out, nc_out, kernel_size=3, padding=1,stride=1,groups=ngroup),
     )
+    if pool_type == 'ave':
+      self.pool1 = torch.nn.AvgPool2d(kernel_size=4,padding=1,stride=2)
+    elif pool_type == 'max':
+      self.pool1 = torch.nn.MaxPool2d(kernel_size=4,padding=1,stride=2)
     initialize_net(self)
 
   def forward(self, x):
     x = torch.nn.functional.relu(self.bn1(x))
-    y = torch.nn.functional.max_pool2d(self.conv1(x),kernel_size=4,padding=1,stride=2)
+    y = self.pool1(self.conv1(x))
     return y+self.model(x)
-
-
-class Module_BRC_ResHalf(torch.nn.Module):
-  def __init__(self, nc_in, nc_out, is_separable=False):
-    super(Module_BRC_ResHalf, self).__init__()
-    ngroup = nc_out if is_separable else 1
-    self.bn1 = torch.nn.BatchNorm2d(nc_in)
-    self.conv1 = torch.nn.Conv2d(nc_in, nc_out, kernel_size=1, padding=0, stride=1)
-    ###
-    self.model = torch.nn.Sequential(
-      torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
-      torch.nn.BatchNorm2d(nc_out),
-      torch.nn.ReLU(inplace=True),
-      torch.nn.Conv2d(nc_out, nc_out, kernel_size=3, padding=1,stride=1,groups=ngroup),
-    )
-    initialize_net(self)
-
-  def forward(self, x):
-    x = torch.nn.functional.relu(self.bn1(x))
-    y = torch.nn.functional.ave_pool2d(self.conv1(x),kernel_size=4,padding=1,stride=2)
-    return y+self.model(x)
-
 
 
 class ResUnit_BRC_ResHalf_Cat(torch.nn.Module):
@@ -322,6 +340,20 @@ class ResUnit_BRC_ResHalf_Add_C(torch.nn.Module):
     return y+x1
 
 #################################################################################################
+
+class ModuleBRC_Double_k4s2(torch.nn.Module):
+  def __init__(self, nc_in, nc_out):
+    super(ModuleBRC_Double_k4s2, self).__init__()
+    self.model = torch.nn.Sequential(
+      torch.nn.BatchNorm2d(nc_in),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.ConvTranspose2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
+    )
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
+
 
 class ResUnit_BRC_ResDouble(torch.nn.Module):
   def __init__(self, nc_in,nc_out,is_separable=False):

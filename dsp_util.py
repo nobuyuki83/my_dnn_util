@@ -36,7 +36,7 @@ def list_annotated_or(list_path_json0, list_name_anno):
         list_path_json.append(path_json)
   return list_path_json
 
-def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range=(0.8, 1,2),npix_face_rad=16):
+def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range=(0.9, 1.1),npix_face_rad=16):
   dict_prsn = dict_info["person0"]
   scale = npix_face_rad / dict_prsn["face_rad"]
   scale *= random.uniform(mag_range[0], mag_range[1])
