@@ -36,9 +36,9 @@ def list_annotated_or(list_path_json0, list_name_anno):
         list_path_json.append(path_json)
   return list_path_json
 
-def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range=(0.8, 1,2)):
+def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range=(0.8, 1,2),npix_face_rad=16):
   dict_prsn = dict_info["person0"]
-  scale = 16 / dict_prsn["face_rad"]
+  scale = npix_face_rad / dict_prsn["face_rad"]
   scale *= random.uniform(mag_range[0], mag_range[1])
   cnt = [size_input[0] * 0.5, + size_input[1] * 0.5]
   if "bbox" in dict_prsn:
@@ -72,7 +72,7 @@ def input_seg(list_name_seg, dict_info, size_img_out, rot_mat, size_img_in):
   for iseg, name_seg in enumerate(list_name_seg):
     list_loop = dict_info["person0"][name_seg]
     list_np_seg = my_util.cv2_get_numpy_loop_array(list_loop)
-    np_mask0 = numpy.zeros(size_img_in, dtype=numpy.uint8)
+    np_mask0 = numpy.zeros((size_img_in[0],size_img_in[1]), dtype=numpy.uint8)
     cv2.fillPoly(np_mask0, list_np_seg, color=1.0)
     np_mask0 = cv2.warpAffine(np_mask0, rot_mat, size_img_out, flags=cv2.INTER_CUBIC)
     np_anno0[0, :, :, iseg] = np_mask0

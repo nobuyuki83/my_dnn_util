@@ -65,10 +65,6 @@ class UNet2(torch.nn.Module):
     return x5
 
 
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-
 class NetEncDec_s2_A(torch.nn.Module):
   def __init__(self,nch_out:int,
                path_file: str):
@@ -147,9 +143,46 @@ class NetEncDec_s1_A(torch.nn.Module):
   def forward(self, x):
     return self.model(x)
 
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
+class NetEncDec_s1_B(torch.nn.Module):
+  def __init__(self,nch_in:int, nch_out:int,
+               path_file: str):
+    super(NetEncDec_s1_B, self).__init__()
+    self.path_file = path_file
+    self.npix = 4
+    self.nstride = 1
+    #####
+    self.layer = torch.nn.Sequential( # 1/1(3)
+#      torch.nn.Conv2d(nch_in, 64, kernel_size=5, padding=2, stride=1),
+      torch.nn.Conv2d(nch_in, 64, kernel_size=3, padding=1, stride=1),
+      my_torch.ResUnit_BRC_Mob(64, nc_in_group=1),
+      my_torch.ResUnit_BRC_ResHalf(64, 128, is_separable=True),
+      my_torch.ResUnit_BRC_Mob(128, nc_in_group=1),
+      my_torch.ResUnit_BRC_ResHalf(128, 256, is_separable=True),
+      my_torch.ResUnit_BRC_Mob(256,nc_in_group=2),
+      my_torch.ResUnit_BRC_Mob(256,nc_in_group=2),
+      my_torch.ResUnit_BRC_Mob(256,nc_in_group=2),
+      my_torch.ResUnit_BRC_Mob(256,nc_in_group=2),
+      my_torch.ResUnit_BRC_Mob(256,nc_in_group=2),
+      my_torch.ResUnit_BRC_Mob(256,nc_in_group=2),
+      my_torch.ResUnit_BRC_ResDouble(256,128, is_separable=True),
+      my_torch.ResUnit_BRC_Mob(128,nc_in_group=1),
+      my_torch.ResUnit_BRC_ResDouble(128, 64, is_separable=True),
+      my_torch.ResUnit_BRC_Mob(64,nc_in_group=1),
+      torch.nn.BatchNorm2d(64),
+      torch.nn.ReLU(inplace=True),
+      torch.nn.Conv2d(64, nch_out, kernel_size=5, padding=2, stride=1),
+      torch.nn.Sigmoid(),
+    )
+    my_torch.initialize_net(self)
+    ####
+    if os.path.isfile(path_file):
+      self = my_torch.load_model_cpm(self, path_file)
+    if torch.cuda.is_available():
+      self = self.cuda()
+
+  def forward(self, x0):
+    x1 = self.layer(x0)
+    return x1
 
 
 class UNet1(torch.nn.Module):
@@ -272,6 +305,8 @@ class NetEncDec1_Dilated(torch.nn.Module):
     x1 = self.layer(x0)
     return x1
 
+##################################################################################################
+
 
 class NetDiscriminator(torch.nn.Module):
   def __init__(self, path_file: str):
@@ -279,10 +314,11 @@ class NetDiscriminator(torch.nn.Module):
     self.path_file = path_file
     self.nstride = 32
     self.layer = torch.nn.Sequential(
-      my_torch.ModuleConv_k4_s2(  3,  64, is_leaky=True, bn=False),  # 1/8
-      my_torch.ModuleConv_k4_s2( 64, 128, is_leaky=True), # 1/8
-      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), # 1/16
-      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True), # 1/32
+      my_torch.ModuleConv_k4_s2(  3,  64, is_leaky=True, bn=False),  # 1/2
+      my_torch.ModuleConv_k4_s2( 64, 128, is_leaky=True), # 1/4
+      my_torch.ModuleConv_k4_s2(128, 256, is_leaky=True), # 1/8
+      my_torch.ModuleConv_k4_s2(256, 512, is_leaky=True), # 1/16
+      my_torch.ModuleConv_k4_s2(512, 512, is_leaky=True),  # 1/16
       torch.nn.Conv2d(512, 1, kernel_size=1, padding=0, stride=1)
     )
     my_torch.initialize_net(self)
@@ -411,9 +447,11 @@ class Net_VGG16(torch.nn.Module):
 
   def prep256(self,y0):
     assert len(y0.shape) == 4
-    assert tuple(y0.shape[1:]) == (3,256,256)
+#    assert tuple(y0.shape[1:]) == (3,256,256)
+    assert tuple(y0.shape[1:]) == (3,224,224)
     ####
-    vpt_batch_crop = y0[:,:,16:16+224,16:16+224]
+#    vpt_batch_crop = y0[:,:,16:16+224,16:16+224]
+    vpt_batch_crop = y0
     for ibatch in range(y0.shape[0]):
       vpt_batch_crop[ibatch] = transforms.functional.normalize(vpt_batch_crop[ibatch],
                                                                mean = [0.406, 0.456, 0.485],
@@ -449,7 +487,8 @@ class Net_VGG16(torch.nn.Module):
     return x1,x2,x3
 
   def mseloss(self,x0,y0):
-    l0 = torch.nn.functional.mse_loss(x0[0],y0[0])
-    l1 = torch.nn.functional.mse_loss(x0[1],y0[1])
+#    l0 = torch.nn.functional.mse_loss(x0[0],y0[0])
+#    l1 = torch.nn.functional.mse_loss(x0[1],y0[1])
     l2 = torch.nn.functional.mse_loss(x0[2],y0[2])
-    return l0+l1+l2
+#    return l0+l1+l2
+    return l2
