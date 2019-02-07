@@ -3,7 +3,7 @@ from OpenGL.GLUT import *
 import cv2, glob, random, json, math, time, argparse, yaml
 import my_dnn_util.util as my_util
 import my_dnn_util.util_gl as my_gl
-import my_dnn_util.dsp_util as my_dsp
+import my_dnn_util.dsp.util as my_dsp
 
 ########################
 list_path_json = []
