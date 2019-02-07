@@ -305,10 +305,10 @@ class UNet1(torch.nn.Module):
 
 
 
-class NetEncDec1_Dilated(torch.nn.Module):
+class NetEncDec_s1p4_Dilated(torch.nn.Module):
   def __init__(self,nch_in:int, nch_out:int,
                path_file: str):
-    super(NetEncDec1_Dilated, self).__init__()
+    super(NetEncDec_s1p4_Dilated, self).__init__()
     self.path_file = path_file
     self.npix = 4
     self.nstride = 1
@@ -317,9 +317,9 @@ class NetEncDec1_Dilated(torch.nn.Module):
       torch.nn.Conv2d(nch_in, 64, kernel_size=5, padding=2, stride=1), # 1/2
       torch.nn.BatchNorm2d(64),
       torch.nn.ReLU(inplace=True),
-      my_torch.ModuleCBR_k4s2(64, 128),
+      my_torch.ModuleCBR_Half_k4s2(64, 128),
       my_torch.ModuleCBR_k3(128, 128),
-      my_torch.ModuleCBR_k4s2(128, 256),
+      my_torch.ModuleCBR_Half_k4s2(128, 256),
       my_torch.ModuleCBR_k3(256, 256),
       my_torch.ModuleCBR_k3(256, 256),
       my_torch.ModuleCBR_k3(256, 256, dilation=2),
@@ -328,9 +328,9 @@ class NetEncDec1_Dilated(torch.nn.Module):
       my_torch.ModuleCBR_k3(256, 256, dilation=16),
       my_torch.ModuleCBR_k3(256, 256),
       my_torch.ModuleCBR_k3(256, 256),
-      my_torch.ModuleDeconv_k4s2(256,128),
+      my_torch.ModuleCBR_Double_k4s2(256,128),
       my_torch.ModuleCBR_k3(128, 128),
-      my_torch.ModuleDeconv_k4s2(128, 64),
+      my_torch.ModuleCBR_Double_k4s2(128, 64),
       my_torch.ModuleCBR_k3(64, 32),
       torch.nn.Conv2d(32,nch_out,kernel_size=3, padding=1, stride=1),
       torch.nn.Tanh()

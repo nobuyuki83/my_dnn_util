@@ -70,9 +70,9 @@ class ModuleCBR_k3(torch.nn.Module):
     return self.model(x)
 
 
-class ModuleCBR_k4s2(torch.nn.Module):
+class ModuleCBR_Half_k4s2(torch.nn.Module):
   def __init__(self, nc_in, nc_out, is_leaky=False, bn=True):
-    super(ModuleCBR_k4s2, self).__init__()
+    super(ModuleCBR_Half_k4s2, self).__init__()
     layers = []
     layers.append(torch.nn.Conv2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2))
     if bn:
@@ -88,9 +88,9 @@ class ModuleCBR_k4s2(torch.nn.Module):
     return self.model(x)
 
 
-class ModuleCBR_Double_k4_s2(torch.nn.Module):
+class ModuleCBR_Double_k4s2(torch.nn.Module):
   def __init__(self, nc_in, nc_out):
-    super(ModuleCBR_Double_k4_s2, self).__init__()
+    super(ModuleCBR_Double_k4s2, self).__init__()
     self.model = torch.nn.Sequential(
       torch.nn.ConvTranspose2d(nc_in, nc_out, kernel_size=4, padding=1, stride=2),
       torch.nn.BatchNorm2d(nc_out),
