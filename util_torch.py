@@ -242,12 +242,12 @@ class ModuleBRC_Half_ResAdd(torch.nn.Module):
     return y+self.model(x)
 
 
-class ResUnit_BRC_ResHalf_Cat(torch.nn.Module):
-  def __init__(self, nc_in, nc_out, is_separable=False):
-    super(ResUnit_BRC_ResHalf_Cat, self).__init__()
+class ModuleBRC_Half_ResCat(torch.nn.Module):
+  def __init__(self, nc_in, nc_out, nc_in_group=-1):
+    super(ModuleBRC_Half_ResCat, self).__init__()
     nh0 = nc_out//2
     nh1 = nc_out-nh0
-    ngroup = nh0 if is_separable else 1
+    ngroup = 1 if nc_in_group<=0 else nh0//nc_in_group
     ####
     self.bn1 = torch.nn.BatchNorm2d(nc_in)
     self.conv1 = torch.nn.Conv2d(nc_in, nh1, kernel_size=1, padding=0, stride=1)
@@ -376,12 +376,12 @@ class ResUnit_BRC_ResDouble(torch.nn.Module):
     return y+self.model(x)
 
 
-class ResUnit_BRC_ResDouble_Cat(torch.nn.Module):
-  def __init__(self, nc_in,nc_out,is_separable=False):
-    super(ResUnit_BRC_ResDouble_Cat, self).__init__()
+class ModuleBRC_Double_ResCat(torch.nn.Module):
+  def __init__(self, nc_in,nc_out,nc_in_group=-1):
+    super(ModuleBRC_Double_ResCat, self).__init__()
     nh0 = nc_out//2
     nh1 = nc_out-nh0
-    ngroup = nh0 if is_separable else 1
+    ngroup = 1 if nc_in_group<=0 else nh0//nc_in_group
     self.bn1 = torch.nn.BatchNorm2d(nc_in)
     self.conv1 = torch.nn.ConvTranspose2d(nc_in, nh1, kernel_size=1, padding=0, stride=1)
     ###

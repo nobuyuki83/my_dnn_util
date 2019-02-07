@@ -75,17 +75,17 @@ class NetEncDec_s2_A(torch.nn.Module):
     #####
     self.model = torch.nn.Sequential(
       torch.nn.Conv2d(3, 64, kernel_size=5, padding=2, stride=1),   # 1/1
-      my_torch.ResUnit_BRC_ResHalf_Cat(64, 128,is_separable=True),  # 1/2
-      my_torch.ResUnit_BRC_ResHalf_Cat(128, 256,is_separable=True), # 1/4
-      my_torch.ResUnit_BRC_ResHalf_Cat(256, 512,is_separable=True), # 1/8
-      my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ResUnit_BRC_ResDouble_Cat(512,256,is_separable=True), # 1/4
-      my_torch.ResUnit_BRC_ResDouble_Cat(256,128,is_separable=True), # 1/2
+      my_torch.ModuleBRC_Half_ResCat( 64, 128, nc_in_group=1),  # 1/2
+      my_torch.ModuleBRC_Half_ResCat(128, 256, nc_in_group=1), # 1/4
+      my_torch.ModuleBRC_Half_ResCat(256, 512, nc_in_group=1), # 1/8
+      my_torch.ModuleBRC_ResBtl(512, nc_in_group=1),
+      my_torch.ModuleBRC_ResBtl(512, nc_in_group=1),
+      my_torch.ModuleBRC_ResBtl(512, nc_in_group=1),
+      my_torch.ModuleBRC_ResBtl(512, nc_in_group=1),
+      my_torch.ModuleBRC_ResBtl(512, nc_in_group=1),
+      my_torch.ModuleBRC_ResBtl(512, nc_in_group=1),
+      my_torch.ModuleBRC_Double_ResCat(512, 256, nc_in_group=1), # 1/4
+      my_torch.ModuleBRC_Double_ResCat(256, 128, nc_in_group=1), # 1/2
       torch.nn.BatchNorm2d(128),
       torch.nn.ReLU(),
       torch.nn.Conv2d(128, nch_out, kernel_size=5, padding=2, stride=1),
@@ -116,18 +116,18 @@ class NetEncDec_s1_A(torch.nn.Module):
     #####
     self.model = torch.nn.Sequential(
       torch.nn.Conv2d(nch_in, 64, kernel_size=5, padding=2, stride=1),   # 1/1
-      my_torch.ResUnit_BRC_ResHalf_Cat( 64, 128,is_separable=True),  # 1/2
-      my_torch.ResUnit_BRC_ResHalf_Cat(128, 256,is_separable=True), # 1/4
-      my_torch.ResUnit_BRC_ResHalf_Cat(256, 512,is_separable=True), # 1/8
+      my_torch.ModuleBRC_Half_ResCat(64, 128, is_separable=True),  # 1/2
+      my_torch.ModuleBRC_Half_ResCat(128, 256, is_separable=True), # 1/4
+      my_torch.ModuleBRC_Half_ResCat(256, 512, is_separable=True), # 1/8
       my_torch.ModuleBRC_ResBtl(512, is_separable=True),
       my_torch.ModuleBRC_ResBtl(512, is_separable=True),
       my_torch.ModuleBRC_ResBtl(512, is_separable=True),
       my_torch.ModuleBRC_ResBtl(512, is_separable=True),
       my_torch.ModuleBRC_ResBtl(512, is_separable=True),
       my_torch.ModuleBRC_ResBtl(512, is_separable=True),
-      my_torch.ResUnit_BRC_ResDouble_Cat(512,256,is_separable=True), # 1/4
-      my_torch.ResUnit_BRC_ResDouble_Cat(256,128,is_separable=True), # 1/2
-      my_torch.ResUnit_BRC_ResDouble_Cat(128, 64,is_separable=True),  # 1/2
+      my_torch.ModuleBRC_Double_ResCat(512, 256, is_separable=True), # 1/4
+      my_torch.ModuleBRC_Double_ResCat(256, 128, is_separable=True), # 1/2
+      my_torch.ModuleBRC_Double_ResCat(128, 64, is_separable=True),  # 1/2
       torch.nn.BatchNorm2d(64),
       torch.nn.ReLU(),
       torch.nn.Conv2d(64, nch_out, kernel_size=5, padding=2, stride=1),
@@ -240,36 +240,36 @@ class UNet1(torch.nn.Module):
       my_torch.ModuleBRC_ResBtl(32, True)
     )  #1/2(32)
     self.layer1 = torch.nn.Sequential( # 1/2(3)
-      my_torch.ResUnit_BRC_ResHalf_Cat(32, 64,is_separable=True),
+      my_torch.ModuleBRC_Half_ResCat(32, 64, is_separable=True),
       my_torch.ModuleBRC_ResBtl(64, True),
       my_torch.ModuleBRC_ResBtl(64, True),
     ) # out: 1/4(64)
     self.layer2 = torch.nn.Sequential( # 1/4(64)
-      my_torch.ResUnit_BRC_ResHalf_Cat(64, 128,is_separable=True),
+      my_torch.ModuleBRC_Half_ResCat(64, 128, is_separable=True),
       my_torch.ModuleBRC_ResBtl(128, True),
       my_torch.ModuleBRC_ResBtl(128, True),
     ) # out: 1/8(128)
     self.layer3 = torch.nn.Sequential( # in: 1/8(128)
-      my_torch.ResUnit_BRC_ResHalf_Cat(128, 256,is_separable=True),
+      my_torch.ModuleBRC_Half_ResCat(128, 256, is_separable=True),
       my_torch.ModuleBRC_ResBtl(256, True),
       my_torch.ModuleBRC_ResBtl(256, True),
       my_torch.ModuleBRC_ResBtl(256, True),
-      my_torch.ResUnit_BRC_ResDouble_Cat(256,128,is_separable=True),
+      my_torch.ModuleBRC_Double_ResCat(256, 128, is_separable=True),
       my_torch.ModuleBRC_ResBtl(128, True),
       my_torch.ModuleBRC_ResBtl(128, True),
     ) # out: 1/8(128)
     self.layer4 = torch.nn.Sequential( # in 1/8(128)
-      my_torch.ResUnit_BRC_ResDouble_Cat(128+128,128,is_separable=True),
+      my_torch.ModuleBRC_Double_ResCat(128 + 128, 128, is_separable=True),
       my_torch.ModuleBRC_ResBtl(128, True),
       my_torch.ModuleBRC_ResBtl(128, True)
     ) # out 1/4(128)
     self.layer5 = torch.nn.Sequential( # in 1/4(128)
-      my_torch.ResUnit_BRC_ResDouble_Cat(128+64,64,is_separable=True),
+      my_torch.ModuleBRC_Double_ResCat(128 + 64, 64, is_separable=True),
       my_torch.ModuleBRC_ResBtl(64, True),
       my_torch.ModuleBRC_ResBtl(64, True),
     ) # out 1/2(64)
     self.layer6 = torch.nn.Sequential( # in 1/2(128)
-      my_torch.ResUnit_BRC_ResDouble_Cat(64+32, 32,is_separable=True),
+      my_torch.ModuleBRC_Double_ResCat(64 + 32, 32, is_separable=True),
       my_torch.ModuleBRC_ResBtl(32, True),
       my_torch.ModuleBRC_ResBtl(32, True),
     ) # in 1/1(32)
