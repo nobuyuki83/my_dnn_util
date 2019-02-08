@@ -136,6 +136,42 @@ def cv2_draw_rect(img, rect:list, color:tuple, width=2):
   recti = list(map(int, rect))
   cv2.rectangle(img, (recti[0], recti[1]), (recti[0] + recti[2], recti[1] + recti[3]), color, width)
 
+def cv2_draw_circle(np_img,cnt,rad,color:tuple):
+  cv2.circle(np_img, (int(cnt[0]), int(cnt[1])), int(rad), color=color)
+
+def cv2_draw_line(np_img,p0,p1,color:tuple):
+  cv2.line(np_img, (int(p0[0]), int(p0[1])), (int(p1[0]), int(p1[1])), color=(0, 255, 0))
+
+
+################################################################################################
+
+def intersect_rects(rec0, rec1):
+  assert len(rec0) == 4
+  assert len(rec1) == 4
+  tlx = max(rec0[0], rec1[0])
+  tly = max(rec0[1], rec1[1])
+  brx = min(rec0[0] + rec0[2], rec1[0] + rec1[2])
+  bry = min(rec0[1] + rec0[3], rec1[1] + rec1[3])
+  if tlx > brx: return []
+  if tly > bry: return []
+  return [tlx, tly, brx - tlx, bry - tly]
+
+def area_rect(rec0):
+  if len(rec0) != 4: return 0.0
+  return rec0[2] * rec0[3]
+
+def iou_rect(trim0, trim2):
+  trim3 = intersect_rects(trim0, trim2)
+  an = area_rect(trim3)
+  au = area_rect(trim2) + area_rect(trim0) - an
+  iou = float(an) / float(au)
+  return iou
+
+def iou_square(dx,dy,w0,w1):
+  rec0 = [-w0/2,-w0/2,w0,w0]
+  rec1 = [dx-w1/2,dy-w1/2,w1,w1]
+  return iou_rect(rec0,rec1)
+
 
 
 ############################################################

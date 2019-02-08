@@ -121,6 +121,25 @@ class ModuleCBR_ResAdd(torch.nn.Module):
 
 ###################################################
 
+class ModuleBRC_k1(torch.nn.Module):
+  def __init__(self, nc_in, nc_out, bn=True, af='relu'):
+    super(ModuleBRC_k1, self).__init__()
+    layers = []
+    if bn:
+      layers.append(torch.nn.BatchNorm2d(nc_in))
+    ###
+    if af == 'relu':
+      layers.append(torch.nn.ReLU(inplace=True))
+    elif af == 'tanh':
+      layers.append(torch.nn.Tanh())
+    ###
+    layers.append( torch.nn.Conv2d(nc_in, nc_out, kernel_size=1, stride=1, padding=0) )
+
+    self.model = nn.Sequential(*layers)
+    initialize_net(self)
+
+  def forward(self, x):
+    return self.model(x)
 
 class ModuleBRC_k3(torch.nn.Module):
   def __init__(self, nc_in, nc_out,dilation=1, is_leaky=False, bn=True):
@@ -128,11 +147,13 @@ class ModuleBRC_k3(torch.nn.Module):
     padding = dilation
     layers = []
     if bn:
-      layers.append(torch.nn.BatchNorm2d(nc_out))
+      layers.append(torch.nn.BatchNorm2d(nc_in))
+    ##
     if not is_leaky:
       layers.append(torch.nn.ReLU(inplace=True))
     else:
       layers.append(torch.nn.LeakyReLU(inplace=True,negative_slope=0.2))
+    ###
     layers.append( torch.nn.Conv2d(nc_in, nc_out, kernel_size=3, stride=1, padding=padding, dilation=dilation) )
     self.model = nn.Sequential(*layers)
     initialize_net(self)
