@@ -1,6 +1,8 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
-import cv2, glob, random, json, math, time, argparse, yaml
+import cv2, glob, random, json, math, time, argparse, yaml, os, sys
+path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(path+"/../../") # importing the higher level functins
 import my_dnn_util.util as my_util
 import my_dnn_util.util_gl as my_gl
 import my_dnn_util.dsp.util as my_dsp
