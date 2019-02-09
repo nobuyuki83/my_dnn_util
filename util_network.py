@@ -66,7 +66,9 @@ class UNet2(torch.nn.Module):
 
 
 class NetEncDec_s2_A(torch.nn.Module):
-  def __init__(self,nch_out:int,
+  def __init__(self,
+               nch_in: int,
+               nch_out: int,
                path_file: str):
     super(NetEncDec_s2_A, self).__init__()
     self.path_file = path_file
@@ -74,7 +76,7 @@ class NetEncDec_s2_A(torch.nn.Module):
     self.npix = 8
     #####
     self.model = torch.nn.Sequential(
-      torch.nn.Conv2d(3, 64, kernel_size=5, padding=2, stride=1),   # 1/1
+      torch.nn.Conv2d(nch_in, 64, kernel_size=5, padding=2, stride=1),   # 1/1
       my_torch.ModuleBRC_Half_ResCat( 64, 128, nc_in_group=1),  # 1/2
       my_torch.ModuleBRC_Half_ResCat(128, 256, nc_in_group=1), # 1/4
       my_torch.ModuleBRC_Half_ResCat(256, 512, nc_in_group=1), # 1/8
