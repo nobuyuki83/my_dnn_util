@@ -163,7 +163,7 @@ def detect(img_in,net_detect,mag:int,prob_thre):
   nstride = net_detect.nstride
   img_bgr = img_in[::mag,::mag,:]
   np_bgr = my_util.get_image_npix(img_bgr, npix=nstride)
-  vpt_in = my_torch.np2pt(np_bgr, scale=2.0 / 255.0, offset=-1.0, requires_grad=False)
+  vpt_in = my_torch.np2pt_img(np_bgr, scale=2.0 / 255.0, offset=-1.0, requires_grad=False)
   with torch.no_grad():
     out_cls, out_prm = net_detect(vpt_in)
   np_cls = out_cls.data.numpy()[0]
