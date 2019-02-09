@@ -136,11 +136,11 @@ def cv2_draw_rect(img, rect:list, color:tuple, width=2):
   recti = list(map(int, rect))
   cv2.rectangle(img, (recti[0], recti[1]), (recti[0] + recti[2], recti[1] + recti[3]), color, width)
 
-def cv2_draw_circle(np_img,cnt,rad,color:tuple):
-  cv2.circle(np_img, (int(cnt[0]), int(cnt[1])), int(rad), color=color)
+def cv2_draw_circle(np_img,cnt,rad,color:tuple,width=1):
+  cv2.circle(np_img, (int(cnt[0]), int(cnt[1])), int(rad), color=color, thickness=width)
 
 def cv2_draw_line(np_img,p0,p1,color:tuple):
-  cv2.line(np_img, (int(p0[0]), int(p0[1])), (int(p1[0]), int(p1[1])), color=(0, 255, 0))
+  cv2.line(np_img, (int(p0[0]), int(p0[1])), (int(p1[0]), int(p1[1])), color=color)
 
 
 ################################################################################################
@@ -186,13 +186,9 @@ def iou_circle(dx,dy,r0,r1):
   a01u = a0+a1-a01i
   return a01i/a01u
 
-
-
-
-
 ############################################################
 
-def get_image_npix(img1, npix, mag, color=(0,0,0)):
+def get_image_npix(img1, npix, mag=1, color=(0,0,0)):
   img2 = img1[0::mag, 0::mag]
   ####
   img3 = img2.copy()

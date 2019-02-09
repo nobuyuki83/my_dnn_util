@@ -1,4 +1,4 @@
-import cv2, numpy, json, time, random
+import cv2, numpy, json, time, random, math
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 import my_dnn_util.util_gl as my_gl
@@ -108,6 +108,34 @@ def input_seg_assembled(list_name_seg, dict_info, shape_img_out, rot_mat, shape_
     np_anno0[:, :] = np_anno0 + np_mask0 - np_anno0 * np_mask0  # computing or
   np_anno0 = np_anno0.reshape(1, shape_img_out[0], shape_img_out[1], 1)
   return np_anno0
+
+
+def input_detect(key,dict_info,nblk,nstride,rot_mat,scale):
+  np_tgc = numpy.zeros((1, nblk, nblk), dtype=numpy.int64)
+  np_tgl = numpy.zeros((1, 3, nblk, nblk), dtype=numpy.float32)
+  np_msk = numpy.zeros((1, nblk, nblk), dtype=numpy.float32)
+  if not key in dict_info["person0"]:
+    return np_tgc,np_tgl,np_msk
+  ####
+  cx0, cy0, iflg = dict_info["person0"][key]
+  cx1 = rot_mat[0][0] * cx0 + rot_mat[0][1] * cy0 + rot_mat[0][2]
+  cy1 = rot_mat[1][0] * cx0 + rot_mat[1][1] * cy0 + rot_mat[1][2]
+  rad1 = dict_info["person0"]["face_rad"] * scale
+  for ih in range(nblk):
+    for iw in range(nblk):
+      px1 = iw * nstride + nstride // 2
+      py1 = ih * nstride + nstride // 2
+      iou = my_util.iou_circle(px1 - cx1, py1 - cy1, nstride*0.72, rad1)
+      if 0.05 < iou < 0.20:
+        np_tgc[0, ih, iw] = -1
+      if iou > 0.20:
+#        print(iou)
+        np_tgc[0, ih, iw] = 1
+        np_msk[0, ih, iw] = 1.0
+        np_tgl[0, 0, ih, iw] = (cx1 - px1) / nstride * 0.5
+        np_tgl[0, 1, ih, iw] = (cy1 - py1) / nstride * 0.5
+        np_tgl[0, 2, ih, iw] = math.log(rad1 / nstride, 2) * 0.5
+  return np_tgc,np_tgl,np_msk
 
 
 #############################################################################################################################
