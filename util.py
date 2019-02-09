@@ -172,6 +172,22 @@ def iou_square(dx,dy,w0,w1):
   rec1 = [dx-w1/2,dy-w1/2,w1,w1]
   return iou_rect(rec0,rec1)
 
+def iou_circle(dx,dy,r0,r1):
+  d = math.sqrt(dx**2+dy**2)
+  if d > r0+r1: return 0.0
+  r0s, r1s, ds = r0**2, r1**2, d**2
+  a0 = r0s*math.pi
+  a1 = r1s*math.pi
+  if r0 > d+r1: return a1/a0
+  if r1 > d+r0: return a0/a1
+  alpha = math.acos((ds + r0s - r1s) / (2 * d * r0))
+  beta = math.acos((ds + r1s - r0s) / (2 * d * r1))
+  a01i = r0s * alpha + r1s * beta - 0.5 * (r0s * math.sin(2 * alpha) + r1s * math.sin(2 * beta))
+  a01u = a0+a1-a01i
+  return a01i/a01u
+
+
+
 
 
 ############################################################

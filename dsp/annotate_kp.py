@@ -133,8 +133,8 @@ def main():
   global list_path_json, ind_list_path_json, dict_config
   parser = argparse.ArgumentParser(description="train convolutional pose machine",
                                    add_help=True)
-  parser.add_argument('--path_dir_img', type=my_util.is_dir, help='input image directory')
-  parser.add_argument('--path_yml', help='input image directory')
+  parser.add_argument('--path_dir_img', type=my_util.is_dir, help='input image directory', required=True)
+  parser.add_argument('--path_yml', help='input image directory', required=True)
   args = parser.parse_args()
 
   dict_config = yaml.load(open(args.path_yml, "r"))
