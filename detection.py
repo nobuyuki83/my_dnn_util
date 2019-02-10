@@ -239,6 +239,7 @@ def detect(img_in,net_detect,mag:int,prob_thre):
 
 
 def detect_multires(img_bgr,net_detect):
+  net_detect.eval()
   list_out = [] # px,py,rad,mag,prob1a
   ####
   len_img = (img_bgr.shape[0]*img_bgr.shape[1])/(net_detect.nstride*net_detect.nstride)
