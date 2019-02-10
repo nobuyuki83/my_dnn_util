@@ -309,7 +309,8 @@ class UNet1(torch.nn.Module):
 
 class NetEncDec_s1p4_Dilated(torch.nn.Module):
   def __init__(self,nch_in:int, nch_out:int,
-               path_file: str):
+               path_file: str,
+               af='tanh'):
     super(NetEncDec_s1p4_Dilated, self).__init__()
     self.path_file = path_file
     self.npix = 4
@@ -335,8 +336,15 @@ class NetEncDec_s1p4_Dilated(torch.nn.Module):
       my_torch.ModuleCBR_Double_k4s2(128, 64),
       my_torch.ModuleCBR_k3(64, 32),
       torch.nn.Conv2d(32,nch_out,kernel_size=3, padding=1, stride=1),
-      torch.nn.Tanh()
     )
+    if af == 'tanh':
+      self.af1 = torch.nn.Tanh()
+    elif af == 'sigmoid':
+      self.af1 = torch.nn.Sigmoid()
+    else:
+      print("unknown activation function",af)
+      exit()
+
     my_torch.initialize_net(self)
     ####
     if os.path.isfile(path_file):
@@ -346,7 +354,7 @@ class NetEncDec_s1p4_Dilated(torch.nn.Module):
 
   def forward(self, x0):
     x1 = self.layer(x0)
-    return x1
+    return self.af1(x1)
 
 ##################################################################################################
 
