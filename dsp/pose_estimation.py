@@ -37,6 +37,10 @@ def pose_detection_from_scratch(np_img,face_rad,list_key_name,net_cpm_scratch):
 
 
 def pose_detection_from_head(np_img, dict_info0, list_key_name, net_cpm_head,thres=0.3):
+  if not "person0" in dict_info0:
+    return dict_info0
+  if not "face_rad" in dict_info0["person0"]:
+    return dict_info0
   net_cpm_head.eval()
   mag = 16 / dict_info0["person0"]["face_rad"]  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))

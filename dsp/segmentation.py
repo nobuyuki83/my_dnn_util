@@ -5,6 +5,10 @@ import my_dnn_util.util as my_util
 import my_dnn_util.dsp.util as my_dsp
 
 def segmentation_from_pose(img_org, dict_info1, net_cpm_head, list_kp, net_seg):
+  if not "person0" in dict_info1:
+    return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
+  if not "face_rad" in dict_info1["person0"]:
+    return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
   mag = 16 / dict_info1["person0"]["face_rad"]  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(img_org, (int(mag * img_org.shape[1]), int(mag * img_org.shape[0])))
   np_in_img = my_util.get_image_npix(np_in_img, net_cpm_head.npix, mag=1)
