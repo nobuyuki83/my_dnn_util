@@ -37,6 +37,7 @@ def pose_detection_from_scratch(np_img,face_rad,list_key_name,net_cpm_scratch):
 
 
 def pose_detection_from_head(np_img, dict_info0, list_key_name, net_cpm_head,thres=0.3):
+  net_cpm_head.eval()
   mag = 16 / dict_info0["person0"]["face_rad"]  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))
   np_in_img = my_util.get_image_npix(np_in_img, net_cpm_head.npix, mag=1)
@@ -48,7 +49,7 @@ def pose_detection_from_head(np_img, dict_info0, list_key_name, net_cpm_head,thr
                            dict_info0["person0"]["keypoint_head"][0] * mag,
                            dict_info0["person0"]["keypoint_head"][1] * mag,
                            16 * 0.5)
-  my_util.view_batch(np_in_img, np_in_wht, 1)
+#  my_util.view_batch(np_in_img, np_in_wht, 1)
   #####
   vpt_in_img = my_torch.np2pt_img(np_in_img, 2.0 / 255.0, offset=-1.0, requires_grad=False)
   vpt_in_wht = my_torch.np2pt_img(np_in_wht, 1.0, offset=0.0, requires_grad=False)

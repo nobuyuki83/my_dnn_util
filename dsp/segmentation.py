@@ -4,6 +4,35 @@ import my_dnn_util.util_torch as my_torch
 import my_dnn_util.util as my_util
 import my_dnn_util.dsp.util as my_dsp
 
+def segmentation_from_pose(img_org, dict_info1, net_cpm_head, list_kp, net_seg):
+  mag = 16 / dict_info1["person0"]["face_rad"]  # magnify such that face is approx. 12pix
+  np_in_img = cv2.resize(img_org, (int(mag * img_org.shape[1]), int(mag * img_org.shape[0])))
+  np_in_img = my_util.get_image_npix(np_in_img, net_cpm_head.npix, mag=1)
+  np_in_img = np_in_img.reshape([1] + list(np_in_img.shape))
+  ####
+  print(np_in_img.shape)
+  np_in_wht = numpy.zeros((1, np_in_img.shape[1], np_in_img.shape[2], len(list_kp)), dtype=numpy.float32)
+  for ikp, kp in enumerate(list_kp):
+    if not kp in dict_info1["person0"]:
+      continue
+    my_util.gauss_keypoint(np_in_wht[0], ikp,
+                           dict_info1["person0"][kp][0] * mag,
+                           dict_info1["person0"][kp][1] * mag,
+                           16 * 0.5)
+  vpt_in_img = my_torch.np2pt_img(np_in_img, scale=2.0 / 255.0, offset=-1.0, requires_grad=False)
+  vpt_in_wht = my_torch.np2pt_img(np_in_wht, scale=1.0, offset=0.0, requires_grad=False)
+  vpt_in = torch.cat((vpt_in_img, vpt_in_wht), dim=1)
+  net_seg.eval()
+  with torch.no_grad():
+    vpt_out = net_seg.forward(vpt_in)
+  np_out = numpy.moveaxis(vpt_out.data.numpy(), 1, 3)
+  #    my_util.view_batch(np_in_img,np_out,nstride=1)
+  np_out = np_out.reshape(np_out.shape[1:])
+  np_in_img = np_in_img.reshape(np_in_img.shape[1:])
+  return np_in_img, np_out, mag
+
+
+
 class BatchesScratch:
   def __init__(self,path_dir_img, nbatch, list_name_seg):
     self.list_name_seg = list_name_seg

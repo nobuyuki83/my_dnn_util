@@ -142,6 +142,8 @@ def input_detect(key,dict_info,nblk,nstride,rot_mat,scale):
 
 
 def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop):
+  if not "person0" in dict_info:
+    return
   face_rad = dict_info["person0"]["face_rad"]
   for ikey, key in enumerate(list_key):
     if key in dict_info["person0"]:
