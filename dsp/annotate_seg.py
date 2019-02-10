@@ -4,7 +4,7 @@ import cv2, glob, random, json, time, argparse, yaml
 
 import my_dnn_util.util as my_util
 import my_dnn_util.util_gl as my_gl
-import my_dnn_util.dsp_util as my_dsp
+import my_dnn_util.dsp.util as my_dsp
 
 
 ########################
@@ -228,8 +228,8 @@ def main():
   ####
   parser = argparse.ArgumentParser(description="train convolutional pose machine",
                                    add_help=True)
-  parser.add_argument('--path_yml', help='input yml file')
-  parser.add_argument('--path_dir_img', help='input image dire')
+  parser.add_argument('--path_yml', help='input yml file', required=True)
+  parser.add_argument('--path_dir_img', help='input image dire', required=True)
   args = parser.parse_args()
   ####
   dict_config = yaml.load(open(args.path_yml, "r"))
