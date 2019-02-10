@@ -274,7 +274,7 @@ def detect_multires(img_bgr,net_detect):
 #  print(list_group)
   ####
   if len(list_group) == 0:
-    return None
+    return {}
 
   px,py,rd = 0,0,0
   for ic in list_group[0]:
@@ -284,4 +284,9 @@ def detect_multires(img_bgr,net_detect):
   px /= len(list_group[0])
   py /= len(list_group[0])
   rd /= len(list_group[0])
-  return [px,py,rd]
+  ####
+  dict_info0 = {}
+  dict_info0["person0"] = {}
+  dict_info0["person0"]["face_rad"] = rd
+  dict_info0["person0"]["keypoint_head"] = [px, py, 2]
+  return dict_info0
