@@ -81,9 +81,9 @@ class NetDetect_s32(torch.nn.Module):
     return out_cls, out_prm
 
 
-class NetDetect_s16(torch.nn.Module):
+class NetDetect_s16_A(torch.nn.Module):
   def __init__(self,path_file):
-    super(NetDetect_s16, self).__init__()
+    super(NetDetect_s16_A, self).__init__()
     self.nstride = 16
     self.npix = 16
     self.path_file = path_file
@@ -127,6 +127,56 @@ class NetDetect_s16(torch.nn.Module):
 
   def prm(self,x):
     return self.layer_prm(x)
+
+  def forward(self,vpt_in):
+    out_dsc = self.dsc(vpt_in)
+    out_cls = self.cls(out_dsc)
+    out_prm = self.prm(out_dsc)
+    return out_cls, out_prm
+
+
+class NetDetect_s16_B(torch.nn.Module):
+  def __init__(self,path_file):
+    super(NetDetect_s16_B, self).__init__()
+    self.nstride = 16
+    self.npix = 16
+    self.path_file = path_file
+    #####
+    self.layer_dsc = torch.nn.Sequential(
+      torch.nn.Conv2d(3, 64, kernel_size=7, padding=3, stride=1),
+      torch.nn.MaxPool2d(kernel_size=2, stride=2), # 1/2
+      my_torch.ModuleBRC_k1( 64,128),
+      my_torch.ModuleBRC_ResBtl(128,nc_in_group=4),
+      torch.nn.MaxPool2d(kernel_size=2, stride=2), # 1/4
+      my_torch.ModuleBRC_k1(128, 256),
+      my_torch.ModuleBRC_ResBtl(256,nc_in_group=4),
+      torch.nn.MaxPool2d(kernel_size=2, stride=2), # 1/8
+      my_torch.ModuleBRC_k1(256, 512),
+      my_torch.ModuleBRC_ResBtl(512,nc_in_group=4),
+      my_torch.ModuleBRC_ResBtl(512,nc_in_group=4),
+      torch.nn.MaxPool2d(kernel_size=2, stride=2), # 1/16
+      my_torch.ModuleBRC_ResBtl(512,nc_in_group=4),
+      my_torch.ModuleBRC_ResBtl(512,nc_in_group=4),
+    )
+    self.layer_cls = torch.nn.Sequential(
+      my_torch.ModuleBRC_k1(512,64),
+      my_torch.ModuleBRC_k1(64,2),
+    )
+    self.layer_prm = torch.nn.Sequential(
+      my_torch.ModuleBRC_k1(512,64,af='tanh'),
+      my_torch.ModuleBRC_k1(64,  3,af='tanh'),
+      torch.nn.Tanh()
+    )
+    my_torch.initialize_net(self)
+    ####
+    if os.path.isfile(self.path_file):
+      self = my_torch.load_model_cpm(self, self.path_file)
+    if torch.cuda.is_available():
+      self = self.cuda()
+
+  def dsc(self, x): return self.layer_dsc(x)
+  def cls(self,x): return self.layer_cls(x)
+  def prm(self,x): return self.layer_prm(x)
 
   def forward(self,vpt_in):
     out_dsc = self.dsc(vpt_in)
