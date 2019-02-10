@@ -278,12 +278,12 @@ def get_segmentation_map(net_seg, np_img, mag):
   return np_in,np_out0
 
 
-def get_peaks(list_key,np_out0,mag):
+def get_peaks(list_key,np_out0,mag,thres=0.3):
   pos_key = [[0, 0, 0]] * len(list_key)
   assert np_out0.shape[2] == len(list_key)
   for ikey, key in enumerate(list_key):
     local_max = maximum_filter(np_out0[:, :, ikey], footprint=numpy.ones((5, 5))) == np_out0[:, :, ikey]
-    local_max = local_max * (np_out0[:, :, ikey] > 0.2)
+    local_max = local_max * (np_out0[:, :, ikey] > thres)
     peaks = numpy.array(numpy.nonzero(local_max)[::-1]).T
     list_peaks = []
     for ipeak in range(peaks.shape[0]):
