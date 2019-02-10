@@ -40,10 +40,12 @@ class BatchesScratch:
 
 
 class BatchesPose:
-  def __init__(self,path_dir_img, nbatch, list_name_seg, list_name_kp):
+  def __init__(self,list_path_dir_img, nbatch, list_name_seg, list_name_kp):
     self.list_name_seg = list_name_seg
     self.list_name_kp = list_name_kp
-    list_path_json0 = glob.glob(path_dir_img + "/*.json")
+    list_path_json0 = []
+    for path_dir_img in list_path_dir_img:
+      list_path_json0 += glob.glob(path_dir_img + "/*.json")
     list_path_json0 = my_dsp.list_annotated_and(list_path_json0, list_name_seg)
     self.bd = my_util.BatchDispenser(nbatch,list_path_json0)
     print("number of images:", len(self.bd.list_path_in))
