@@ -4,21 +4,29 @@ import my_dnn_util.dsp.util as my_dsp
 import my_dnn_util.util as my_util
 import my_dnn_util.util_torch as my_torch
 
-def get_dict_info_from_heatmap(np_heatmap, face_rad, list_key_name, mag, thres=0.3):
+def update_dict_info_from_heatmap(dict_info0:dict,
+                                  np_heatmap,
+                                  face_rad,
+                                  list_key_name,
+                                  mag,
+                                  thres=0.3):
   assert np_heatmap.shape[2] == len(list_key_name)
   list_pos_key = my_util.get_peaks(list_key_name, np_heatmap, mag, thres=thres)
-  dict_info1 = {}
-  dict_info1['person0'] = {}
-  dict_info1['person0']['rad_head'] = face_rad
+  dict_info1 = dict_info0
+  if not "person0" in dict_info1:
+    dict_info1['person0'] = {}
+  if not "rad_head" in dict_info1["person0"]:
+    dict_info1['person0']['rad_head'] = face_rad
   for ipos, pos in enumerate(list_pos_key):
     if not list_pos_key[ipos][2] is 2:
       continue
     key_name = list_key_name[ipos]
-    dict_info1['person0'][key_name] = list_pos_key[ipos]
+    if not key_name in dict_info1["person0"]:
+      dict_info1['person0'][key_name] = list_pos_key[ipos]
   return dict_info1
 
 
-def pose_detection_from_scratch(np_img,face_rad,list_key_name,net_cpm_scratch):
+def pose_detection_from_scratch(np_img,dict_info0,face_rad,list_key_name,net_cpm_scratch):
   mag = 16 / face_rad  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))
   np_in_img = my_util.get_image_npix(np_in_img, net_cpm_scratch.npix, mag=1)
@@ -29,17 +37,21 @@ def pose_detection_from_scratch(np_img,face_rad,list_key_name,net_cpm_scratch):
     pt_out0 = net_cpm_scratch.forward(vpt_in_img)
   np_heatmap = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
   np_heatmap = np_heatmap.reshape(np_heatmap.shape[1:])
-  dict_info1 = get_dict_info_from_heatmap(np_heatmap,
-                                          face_rad,
-                                          list_key_name, mag)
+  dict_info1 = update_dict_info_from_heatmap(dict_info0,
+                                             np_heatmap,
+                                             face_rad,
+                                             list_key_name, mag)
   return dict_info1
 
 
-def pose_detection_from_head(np_img, dict_info0, list_key_name, net_cpm_head,thres=0.3):
+def pose_detection_from_head(dict_info0, np_img, list_key_name, net_cpm_head,thres=0.3):
   if not "person0" in dict_info0:
     return dict_info0
   if not "rad_head" in dict_info0["person0"]:
     return dict_info0
+  if not "kp_head" in dict_info0["person0"]:
+    return dict_info0
+  ####
   net_cpm_head.eval()
   mag = 16 / dict_info0["person0"]["rad_head"]  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(np_img, (int(mag * np_img.shape[1]), int(mag * np_img.shape[0])))
@@ -59,12 +71,14 @@ def pose_detection_from_head(np_img, dict_info0, list_key_name, net_cpm_head,thr
   vpt_in = torch.cat((vpt_in_img, vpt_in_wht), dim=1)
   with torch.no_grad():
     pt_out0 = net_cpm_head.forward(vpt_in)
+  assert pt_out0.shape[1] == len(list_key_name)
   np_heatmap = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
   np_heatmap = np_heatmap.reshape(np_heatmap.shape[1:])
-  dict_info1 = get_dict_info_from_heatmap(np_heatmap,
-                                          dict_info0["person0"]['rad_head'],
-                                          list_key_name, mag,
-                                          thres=thres)
+  dict_info1 = update_dict_info_from_heatmap(dict_info0,
+                                              np_heatmap,
+                                              dict_info0["person0"]['rad_head'],
+                                              list_key_name, mag,
+                                              thres=thres)
   return dict_info1
 
 
