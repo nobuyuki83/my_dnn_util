@@ -38,7 +38,7 @@ def list_annotated_or(list_path_json0, list_name_anno):
 
 def get_affine(dict_info, size_input, size_output, rot_range=(-40,40), mag_range=(0.9, 1.1),npix_face_rad=16):
   dict_prsn = dict_info["person0"]
-  scale = npix_face_rad / dict_prsn["face_rad"]
+  scale = npix_face_rad / dict_prsn["rad_head"]
   scale *= random.uniform(mag_range[0], mag_range[1])
   cnt = [size_input[0] * 0.5, + size_input[1] * 0.5]
   if "bbox" in dict_prsn:
@@ -120,7 +120,7 @@ def input_detect(key,dict_info,nblk,nstride,rot_mat,scale):
   cx0, cy0, iflg = dict_info["person0"][key]
   cx1 = rot_mat[0][0] * cx0 + rot_mat[0][1] * cy0 + rot_mat[0][2]
   cy1 = rot_mat[1][0] * cx0 + rot_mat[1][1] * cy0 + rot_mat[1][2]
-  rad1 = dict_info["person0"]["face_rad"] * scale
+  rad1 = dict_info["person0"]["rad_head"] * scale
   for ih in range(nblk):
     for iw in range(nblk):
       px1 = iw * nstride + nstride // 2
@@ -141,21 +141,31 @@ def input_detect(key,dict_info,nblk,nstride,rot_mat,scale):
 #############################################################################################################################
 
 
-def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop):
+def cv2_draw_annotation(np_img0,dict_info,draw_prop):
   if not "person0" in dict_info:
     return
-  face_rad = dict_info["person0"]["face_rad"]
-  for ikey, key in enumerate(list_key):
-    if key in dict_info["person0"]:
-      pos_key = dict_info["person0"][key]
-      prop = dict_key_prop[key]
+
+  face_rad = 16
+  if "rad_head" in dict_info["person0"]:
+    face_rad = dict_info["person0"]["rad_head"]
+
+  for key in dict_info["person0"].keys():
+    if not key.startswith("kp_"):
+      continue
+    pos_key = dict_info["person0"][key]
+    if key in draw_prop["kp"]:
+      prop = draw_prop["kp"][key]
       color0 = prop[0:3]
       rad0 = prop[3]*face_rad
       width = int(prop[4])
-      cv2.circle(np_img0,
-                 (int(pos_key[0]), int(pos_key[1])), int(rad0), color0, width)
+    else:
+      color0 = [0,0,]
+      rad0 = 4
+      width = 1
+    cv2.circle(np_img0,
+               (int(pos_key[0]), int(pos_key[1])), int(rad0), color0, width)
 
-  for edge in list_edge_prop:
+  for edge in draw_prop["edge"]:
     key0 = edge[0]
     key1 = edge[1]
     if key0 in dict_info["person0"] and key1 in dict_info['person0']:
@@ -174,12 +184,13 @@ def cv2_draw_annotation(np_img0,dict_info,list_key,dict_key_prop,list_edge_prop)
                   (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3])),
                   (255, 0, 0), 1)
 
-  if "segmentation" in dict_info["person0"]:
-    list_seg = dict_info["person0"]["segmentation"]
+  if "seg" in dict_info["person0"]:
+    list_seg = dict_info["person0"]["seg"]
     for seg in list_seg:
       np_sgm = numpy.array(seg,dtype=numpy.int)
       np_sgm = np_sgm.reshape((-1,2))
       cv2.polylines(np_img0, [np_sgm], True, (0, 255, 255))
+
 
 def arrange_old_new_json(list_path_json):
   dict_bn_time = {}
@@ -200,37 +211,37 @@ def arrange_old_new_json(list_path_json):
 #####################################################################################
 ## OpenGL dependency from here
 
-def draw_keypoint_circle(dict_info,head_ratio,color,width,key):
-  if not "face_rad" in dict_info:
+def gl_draw_keypoint_circle(dict_prsn, head_ratio, color, width, key):
+  if not "rad_head" in dict_prsn:
     return
-  r0 = dict_info["face_rad"]
-  if key in dict_info:
-    if not dict_info[key][2] == 0:
-       my_gl.drawCircle(dict_info[key],r0*head_ratio,color=color,width=width)
+  r0 = dict_prsn["rad_head"]
+  if key in dict_prsn:
+    if not dict_prsn[key][2] == 0:
+       my_gl.drawCircle(dict_prsn[key], r0 * head_ratio, color=color, width=width)
 
-def draw_keypoint_line(dict_info,color,key0,key1):
+def gl_draw_keypoint_line(dict_info, color, key0, key1):
   if key0 in dict_info and key1 in dict_info:
     if not dict_info[key0][2] == 0 and not dict_info[key1][2] ==0:
       my_gl.drawLine(dict_info[key0],dict_info[key1],color,width=2)
 
-def draw_annotation_keypoint(dict_info, dict_kp_draw_prop,kp_edge_draw_prop):
-  for key in dict_info:
-    if not key.startswith('keypoint_'):
+def gl_draw_annotation_keypoint(dict_prsn, draw_prop):
+  for key in dict_prsn:
+    if not key.startswith('kp_'):
       continue
-    if key in dict_kp_draw_prop:
-      prop = dict_kp_draw_prop[key]
-      draw_keypoint_circle(dict_info,prop[3], (prop[2],prop[1],prop[0]),prop[4],key)
+    if key in draw_prop["kp"]:
+      prop = draw_prop["kp"][key]
+      gl_draw_keypoint_circle(dict_prsn, prop[3], (prop[2], prop[1], prop[0]), prop[4], key)
     else:
-      draw_keypoint_circle(dict_info, 0.1, (0,0,0), 2.0, key)
+      gl_draw_keypoint_circle(dict_prsn, 0.1, (0, 0, 0), 2.0, key)
   ####
-  for kp_edge in kp_edge_draw_prop:
-    draw_keypoint_line(dict_info, (kp_edge[2], kp_edge[3], kp_edge[4]), kp_edge[0], kp_edge[1])
+  for kp_edge in draw_prop["edge"]:
+    gl_draw_keypoint_line(dict_prsn, (kp_edge[2], kp_edge[3], kp_edge[4]), kp_edge[0], kp_edge[1])
 
-def draw_annotation_bbox(dict_info):
+def gl_draw_annotation_bbox(dict_info):
   if 'bbox' in dict_info:
     my_gl.drawRect(dict_info["bbox"],color=(255,0,0),width=1)
 
-def draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
+def gl_draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
   if name_seg in dict_info:
     for iloop,loop in enumerate(dict_info[name_seg]):
       my_gl.drawPolyline(loop,color=(1,1,1),width=1)

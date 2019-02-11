@@ -42,8 +42,8 @@ def load_img_info(ioffind):
       dict_info = json.load(file0)
   if not "person0" in dict_info:
     dict_info["person0"] = {}
-  if not "face_rad" in dict_info["person0"]:
-    dict_info["person0"]["face_rad"] = 40.0
+  if not "rad_head" in dict_info["person0"]:
+    dict_info["person0"]["rad_head"] = 40.0
   iloop_selected = -1
   if list_name_seg[ind_name_seg] in dict_info["person0"]:
     iloop_selected = 0
@@ -56,11 +56,11 @@ def display():
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
-  my_dsp.draw_annotation_bbox(dict_info["person0"])
-  my_dsp.draw_annotation_segmentation(dict_info["person0"],
+  my_dsp.gl_draw_annotation_bbox(dict_info["person0"])
+  my_dsp.gl_draw_annotation_segmentation(dict_info["person0"],
                                      selected_loop=iloop_selected,
                                      name_seg=name_seg)
-  my_dsp.draw_keypoint_circle(dict_info["person0"],1.0,(255,  0,  0),2,"keypoint_head")
+  my_dsp.gl_draw_keypoint_circle(dict_info["person0"], 1.0, (255, 0, 0), 2, "kp_head")
 #  util.draw_annotation_keypoint(dict_info["person0"])
   ####
   glDisable(GL_TEXTURE_2D)
@@ -115,13 +115,6 @@ def keyboard(bkey, x, y):
           iloop_selected = -1
         else:
           iloop_selected = (iloop_selected+nloop-1)%nloop
-  '''
-  if key == 't':
-    if name_seg in dict_info["person0"]:
-      if iloop_selected >= 0 and iloop_selected < len(dict_info["person0"]):
-        loop_out = dfm2.simplify_polyloop(dict_info["person0"][name_seg][iloop_selected], 2.0)
-        dict_info["person0"][name_seg][iloop_selected] = loop_out
-  '''
   if key == 's':
     if name_seg in dict_info["person0"]:
       list_loop = dict_info["person0"][name_seg]

@@ -288,6 +288,6 @@ def detect_multires(img_bgr,net_detect):
   ####
   dict_info0 = {}
   dict_info0["person0"] = {}
-  dict_info0["person0"]["face_rad"] = rd
-  dict_info0["person0"]["keypoint_head"] = [px, py, 2]
+  dict_info0["person0"]["rad_head"] = rd
+  dict_info0["person0"]["kp_head"] = [px, py, 2]
   return dict_info0

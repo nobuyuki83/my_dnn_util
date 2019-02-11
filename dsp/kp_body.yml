@@ -1,56 +1,59 @@
 list_kp:
-  - keypoint_head
-  - keypoint_shoulderleft
-  - keypoint_shoulderright
-  - keypoint_elbowleft
-  - keypoint_elbowright
-  - keypoint_wristleft
-  - keypoint_wristright  
-  - keypoint_hipleft
-  - keypoint_hipright  
-  - keypoint_kneeleft
-  - keypoint_kneeright  
-  - keypoint_ankleleft
-  - keypoint_ankleright  
+  - kp_head
+  - kp_left_shoulder
+  - kp_right_shoulder
+  - kp_left_elbow
+  - kp_right_elbow
+  - kp_left_wrist
+  - kp_right_wrist
+  - kp_left_hip
+  - kp_right_hip
+  - kp_left_knee
+  - kp_right_knee
+  - kp_left_ankle
+  - kp_right_ankle
 
 
-kp_draw_prop:
-  keypoint_head: [0,   0, 255, 1.0, 2.0]
-  keypoint_shoulderleft: [255, 0,   0, 0.4, 1.0]
-  keypoint_shoulderright: [0, 255,   0, 0.4, 1.0] 
-  keypoint_elbowleft: [255, 0, 255, 0.3, 1.0] 
-  keypoint_elbowright: [0, 255, 255, 0.3, 1.0]
-  keypoint_wristleft: [255, 0,   0, 0.2, 1.0]
-  keypoint_wristright:  [0, 255,   0, 0.2, 1.0]
-  keypoint_hipleft: [255, 0,   0, 0.7, 2.0] 
-  keypoint_hipright: [0, 255,   0, 0.7, 2.0]
-  keypoint_kneeleft:  [255, 0, 255, 0.5, 2.0]
-  keypoint_kneeright: [0, 255, 255, 0.5, 2.0]
-  keypoint_ankleleft: [255, 0,   0, 0.3, 2.0]
-  keypoint_ankleright: [0, 255,   0, 0.3, 2.0]
+draw_prop:
+  kp:
+    kp_head: [0,   0, 255, 1.0, 2.0]
+    kp_left_shoulder: [255, 0,   0, 0.4, 1.0]
+    kp_right_shoulder: [0, 255,   0, 0.4, 1.0]
+    kp_left_elbow: [255, 0, 255, 0.3, 1.0]
+    kp_right_elbow: [0, 255, 255, 0.3, 1.0]
+    kp_left_wrist: [255, 0,   0, 0.2, 1.0]
+    kp_right_wrist:  [0, 255,   0, 0.2, 1.0]
+    kp_left_hip: [255, 0,   0, 0.7, 2.0]
+    kp_right_hip: [0, 255,   0, 0.7, 2.0]
+    kp_left_knee:  [255, 0, 255, 0.5, 2.0]
+    kp_right_knee: [0, 255, 255, 0.5, 2.0]
+    kp_left_ankle: [255, 0,   0, 0.3, 2.0]
+    kp_right_ankle: [0, 255,   0, 0.3, 2.0]
 
+  edge:
+    - ["kp_left_shoulder","kp_left_elbow",0,0,255]
+    - ["kp_right_shoulder","kp_right_elbow",0,255,0]
+    - ["kp_left_elbow","kp_left_wrist",255,0,255]
+    - ["kp_right_elbow","kp_right_wrist",255,255,0]
+    - ["kp_left_hip","kp_left_knee",0,0,255]
+    - ["kp_right_hip","kp_right_knee",0,255,0]
+    - ["kp_left_knee","kp_left_ankle",255,0,255]
+    - ["kp_right_knee","kp_right_ankle",255,255,0]
 
-kp_edge_draw_prop:
-  - ["keypoint_shoulderleft","keypoint_elbowleft",0,0,255]
-  - ["keypoint_shoulderright","keypoint_elbowright",0,255,0]
-  - ["keypoint_elbowleft","keypoint_wristleft",255,0,255]
-  - ["keypoint_elbowright","keypoint_wristright",255,255,0]
-  - ["keypoint_hipleft","keypoint_kneeleft",0,0,255]
-  - ["keypoint_hipright","keypoint_kneeright",0,255,0]
-  - ["keypoint_kneeleft","keypoint_ankleleft",255,0,255]
-  - ["keypoint_kneeright","keypoint_ankleright",255,255,0]
+  seg:
+    segmentation: [0,0,255]
 
 key2kp:
-  '1': keypoint_head
-  '2': keypoint_shoulderleft
-  '3': keypoint_shoulderright
-  '4': keypoint_elbowleft
-  '5': keypoint_elbowright
-  '6': keypoint_wristleft
-  '7': keypoint_wristright
-  '@': keypoint_hipleft
-  '#': keypoint_hipright
-  '$': keypoint_kneeleft
-  '%': keypoint_kneeright
-  '^': keypoint_ankleleft
-  '&': keypoint_ankleright
+  '1': kp_head
+  '2': kp_left_shoulder
+  '3': kp_right_shoulder
+  '4': kp_left_elbow
+  '5': kp_right_elbow
+  '6': kp_left_wrist
+  '7': kp_right_wrist
+  '@': kp_left_hip
+  '#': kp_right_hip
+  '$': kp_left_knee
+  '%': kp_right_knee
+  '^': kp_left_ankle
+  '&': kp_right_ankle

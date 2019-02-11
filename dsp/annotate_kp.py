@@ -42,8 +42,8 @@ def load_img_info(ioffind):
   mode_prsn = "person0"
   if not "person0" in dict_info:
     dict_info["person0"] = {}
-  if not "face_rad" in dict_info["person0"]:
-    dict_info["person0"]["face_rad"] = 100.0
+  if not "rad_head" in dict_info["person0"]:
+    dict_info["person0"]["rad_head"] = 100.0
 
 
 #####################################
@@ -51,8 +51,8 @@ def display():
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
-  my_dsp.draw_annotation_keypoint(dict_info[mode_prsn],dict_config['kp_draw_prop'],dict_config['kp_edge_draw_prop'])
-  my_dsp.draw_annotation_bbox(dict_info[mode_prsn])
+  my_dsp.gl_draw_annotation_keypoint(dict_info[mode_prsn],dict_config['draw_prop'])
+  my_dsp.gl_draw_annotation_bbox(dict_info[mode_prsn])
   ####
   glDisable(GL_TEXTURE_2D)
   glMatrixMode(GL_MODELVIEW)
@@ -78,9 +78,9 @@ def keyboard(bkey, x, y):
     elif mod == 1:
       load_img_info(-1)
   if key == '-':
-    dict_info[mode_prsn]["face_rad"] -= 3
+    dict_info[mode_prsn]["rad_head"] -= 3
   if key == '=':
-    dict_info[mode_prsn]["face_rad"] += 3
+    dict_info[mode_prsn]["rad_head"] += 3
   if key == "0":
     mode_edit = 'bbox'
   if key in dict_config['key2kp']:
@@ -102,7 +102,7 @@ def mouse(button, state, x, y):
     if button == 0 and state == GLUT_DOWN:
       xy1 = my_gl.get_img_coord((x, y), img_size_info)
       for key in dict_info[mode_prsn].keys():
-        if not key.startswith("keypoint_"):
+        if not key.startswith("kp_"):
           continue
         xy2 = dict_info[mode_prsn][key]
         if xy2[2] == 0:

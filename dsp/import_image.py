@@ -43,12 +43,12 @@ def main():
         shutil.move(path_tmp, path_trg)
         dict_info = {}
         dict_info["person0"] = {}
-        dict_info["person0"]["face_rad"] = 80
+        dict_info["person0"]["rad_head"] = 80
         if len(list_rect) == 1:
           rw = list_rect[0][2]
           rh = list_rect[0][3]
-          dict_info["person0"]["face_rad"] = math.sqrt(rw*rw+rh*rh)*0.5
-          dict_info["person0"]["keypoint_head"] = [list_rect[0][0]+rw*0.5,list_rect[0][1]+rh*0.5,2]
+          dict_info["person0"]["rad_head"] = math.sqrt(rw*rw+rh*rh)*0.5
+          dict_info["person0"]["kp_head"] = [list_rect[0][0]+rw*0.5,list_rect[0][1]+rh*0.5,2]
         with open(args.dist+"/" + name_md5 + ".json", "w") as file0:
           json.dump(dict_info, file0, indent=2)
 

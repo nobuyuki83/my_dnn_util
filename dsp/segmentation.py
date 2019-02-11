@@ -7,10 +7,10 @@ import my_dnn_util.dsp.util as my_dsp
 def segmentation_map_from_pose(img_org, dict_info1, list_kp, net_seg):
   if not "person0" in dict_info1:
     return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
-  if not "face_rad" in dict_info1["person0"]:
+  if not "rad_head" in dict_info1["person0"]:
     return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
   net_seg.eval()
-  mag = 16 / dict_info1["person0"]["face_rad"]  # magnify such that face is approx. 12pix
+  mag = 16 / dict_info1["person0"]["rad_head"]  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(img_org, (int(mag * img_org.shape[1]), int(mag * img_org.shape[0])))
   np_in_img = my_util.get_image_npix(np_in_img, net_seg.npix, mag=1)
   np_in_img = np_in_img.reshape([1] + list(np_in_img.shape))
@@ -35,7 +35,8 @@ def segmentation_map_from_pose(img_org, dict_info1, list_kp, net_seg):
   np_in_img = np_in_img.reshape(np_in_img.shape[1:])
   return np_in_img, np_out, mag
 
-
+##############################################################################################################
+## batches for training CNN
 
 class BatchesScratch:
   def __init__(self,path_dir_img, nbatch, list_name_seg):
@@ -97,7 +98,7 @@ class BatchesPose:
       rot_mat,scale = my_dsp.get_affine(dict_info,(np_img0.shape[1],np_img0.shape[0]),(size_img,size_img))
       ####
       np_in_img = cv2.warpAffine(np_img0, rot_mat, (size_img,size_img), flags=cv2.INTER_CUBIC)
-      gauss_rad = 0.5*dict_info["person0"]["face_rad"]*scale
+      gauss_rad = 0.5*dict_info["person0"]["rad_head"]*scale
       np_in_wht = my_dsp.input_kp(self.list_name_kp,dict_info,
                                   (size_img, size_img), rot_mat, gauss_rad)
       np_tg_seg = my_dsp.input_seg(self.list_name_seg, dict_info,
