@@ -141,22 +141,31 @@ def input_detect(key,dict_info,nblk,nstride,rot_mat,scale):
 #############################################################################################################################
 
 
-def cv2_draw_annotation(np_img0,dict_info,draw_prop):
-  if not "person0" in dict_info:
-    return
+def cv2_draw_annotation(np_img0,dict_prsn,draw_prop):
 
-  face_rad = 16
-  if "rad_head" in dict_info["person0"]:
-    face_rad = dict_info["person0"]["rad_head"]
+  np_img0a = np_img0.copy()
+  for key in dict_prsn.keys():
+    if not key.startswith("seg"): continue
+    np_list_loop = my_util.cv2_get_numpy_loop_array(dict_prsn[key])
+    cv2.fillPoly(np_img0a, np_list_loop, color=(0, 0, 255))
+  cv2.addWeighted(np_img0a, 0.2, np_img0, 0.8, 0, np_img0)
+  for key in dict_prsn.keys():
+    if not key.startswith("seg"): continue
+    np_list_loop = my_util.cv2_get_numpy_loop_array(dict_prsn[key])
+    cv2.polylines(np_img0, np_list_loop, True, color=(0, 0, 255), thickness=1)
 
-  for key in dict_info["person0"].keys():
+  rad_head = 16
+  if "rad_head" in dict_prsn:
+    rad_head = dict_prsn["rad_head"]
+
+  for key in dict_prsn.keys():
     if not key.startswith("kp_"):
       continue
-    pos_key = dict_info["person0"][key]
+    pos_key = dict_prsn[key]
     if key in draw_prop["kp"]:
       prop = draw_prop["kp"][key]
       color0 = prop[0:3]
-      rad0 = prop[3]*face_rad
+      rad0 = prop[3]*rad_head
       width = int(prop[4])
     else:
       color0 = [0,0,]
@@ -168,28 +177,21 @@ def cv2_draw_annotation(np_img0,dict_info,draw_prop):
   for edge in draw_prop["edge"]:
     key0 = edge[0]
     key1 = edge[1]
-    if key0 in dict_info["person0"] and key1 in dict_info['person0']:
-      pos_key0 = dict_info["person0"][key0]
-      pos_key1 = dict_info["person0"][key1]
+    if key0 in dict_prsn and key1 in dict_prsn:
+      pos_key0 = dict_prsn[key0]
+      pos_key1 = dict_prsn[key1]
       color0 = edge[2:5]
       cv2.line(np_img0,
                (int(pos_key0[0]), int(pos_key0[1])),
                (int(pos_key1[0]), int(pos_key1[1])),
                color0)
 
-  if "bbox" in dict_info["person0"]:
-    bbox = dict_info["person0"]["bbox"]
+  if "bbox" in dict_prsn:
+    bbox = dict_prsn["bbox"]
     cv2.rectangle(np_img0,
                   (int(bbox[0]),int(bbox[1])),
                   (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3])),
                   (255, 0, 0), 1)
-
-  if "seg" in dict_info["person0"]:
-    list_seg = dict_info["person0"]["seg"]
-    for seg in list_seg:
-      np_sgm = numpy.array(seg,dtype=numpy.int)
-      np_sgm = np_sgm.reshape((-1,2))
-      cv2.polylines(np_img0, [np_sgm], True, (0, 255, 255))
 
 
 def arrange_old_new_json(list_path_json):
