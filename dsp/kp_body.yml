@@ -41,7 +41,7 @@ draw_prop:
     - ["kp_right_knee","kp_right_ankle",255,255,0]
 
   seg:
-    segmentation: [0,0,255]
+    "seg": [0,0,255]
 
 key2kp:
   '1': kp_head
