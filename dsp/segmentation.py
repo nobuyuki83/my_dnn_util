@@ -4,17 +4,17 @@ import my_dnn_util.util_torch as my_torch
 import my_dnn_util.util as my_util
 import my_dnn_util.dsp.util as my_dsp
 
-def segmentation_from_pose(img_org, dict_info1, net_cpm_head, list_kp, net_seg):
+def segmentation_map_from_pose(img_org, dict_info1, list_kp, net_seg):
   if not "person0" in dict_info1:
     return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
   if not "face_rad" in dict_info1["person0"]:
     return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
+  net_seg.eval()
   mag = 16 / dict_info1["person0"]["face_rad"]  # magnify such that face is approx. 12pix
   np_in_img = cv2.resize(img_org, (int(mag * img_org.shape[1]), int(mag * img_org.shape[0])))
-  np_in_img = my_util.get_image_npix(np_in_img, net_cpm_head.npix, mag=1)
+  np_in_img = my_util.get_image_npix(np_in_img, net_seg.npix, mag=1)
   np_in_img = np_in_img.reshape([1] + list(np_in_img.shape))
   ####
-  print(np_in_img.shape)
   np_in_wht = numpy.zeros((1, np_in_img.shape[1], np_in_img.shape[2], len(list_kp)), dtype=numpy.float32)
   for ikp, kp in enumerate(list_kp):
     if not kp in dict_info1["person0"]:

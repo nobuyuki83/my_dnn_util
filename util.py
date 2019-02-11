@@ -114,6 +114,18 @@ def pick_loop_edge(xy2:list, key:str, dict_prsn:dict):
         ivtx_selected = iv1
   return iloop_selected,ivtx_selected,min_xy3
 
+
+def area_loop(loop):
+  nv = len(loop)//2
+  area = 0.0
+  for iv0 in range(nv):
+    iv1 = (iv0+1)%nv
+    xy0 = loop[iv0 * 2 + 0], loop[iv0 * 2 + 1]
+    xy1 = loop[iv1 * 2 + 0], loop[iv1 * 2 + 1]
+    area += xy0[0]*xy1[1] - xy0[1]*xy1[0]
+  return 0.5*area
+
+
 class FaceDetectorCV:
   def __init__(self):
     path_data = cv2.data.haarcascades
@@ -130,6 +142,8 @@ def cv2_get_numpy_loop_array(list_loop):
   for loop in list_loop:
     list_loop_np.append(numpy.array(loop, dtype=int).reshape(-1, 2))
   return list_loop_np
+
+
 
 def cv2_draw_rect(img, rect:list, color:tuple, width=2):
   assert len(rect) == 4
