@@ -37,16 +37,16 @@ def segmentation_map_from_pose(img_org, dict_info1, list_kp, net_seg):
   np_in_img = my_util.get_image_npix(np_in_img, net_seg.npix, mag=1)
   np_in_img = np_in_img.reshape([1] + list(np_in_img.shape))
   ####
-  np_in_wht = numpy.zeros((1, np_in_img.shape[1], np_in_img.shape[2], len(list_kp)), dtype=numpy.float32)
+  np_in_pose = numpy.zeros((1, np_in_img.shape[1], np_in_img.shape[2], len(list_kp)), dtype=numpy.float32)
   for ikp, kp in enumerate(list_kp):
     if not kp in dict_info1["person0"]:
       continue
-    my_util.gauss_keypoint(np_in_wht[0], ikp,
+    my_util.gauss_keypoint(np_in_pose[0], ikp,
                            dict_info1["person0"][kp][0] * mag,
                            dict_info1["person0"][kp][1] * mag,
                            16 * 0.5)
   vpt_in_img = my_torch.np2pt_img(np_in_img, scale=2.0 / 255.0, offset=-1.0, requires_grad=False)
-  vpt_in_wht = my_torch.np2pt_img(np_in_wht, scale=1.0, offset=0.0, requires_grad=False)
+  vpt_in_wht = my_torch.np2pt_img(np_in_pose, scale=1.0, offset=0.0, requires_grad=False)
   vpt_in = torch.cat((vpt_in_img, vpt_in_wht), dim=1)
   net_seg.eval()
   with torch.no_grad():

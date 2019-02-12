@@ -44,7 +44,10 @@ def pose_detection_from_scratch(np_img,dict_info0,face_rad,list_key_name,net_cpm
   return dict_info1
 
 
-def pose_detection_from_head(dict_info0, np_img, list_key_name, net_cpm_head,thres=0.3):
+def pose_detection_from_head(dict_info0:dict,
+                              np_img,
+                              list_key_name:list,
+                              net_cpm_head,thres=0.3):
   if not "person0" in dict_info0:
     return dict_info0
   if not "rad_head" in dict_info0["person0"]:
