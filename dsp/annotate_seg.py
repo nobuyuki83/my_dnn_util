@@ -60,7 +60,7 @@ def display():
   my_dsp.gl_draw_annotation_segmentation(dict_info["person0"],
                                      selected_loop=iloop_selected,
                                      name_seg=name_seg)
-  my_dsp.gl_draw_keypoint_circle(dict_info["person0"], 1.0, (255, 0, 0), 2, "kp_head")
+#  my_dsp.gl_draw_keypoint_circle(dict_info["person0"], 1.0, (255, 0, 0), 2, "kp_head")
 #  util.draw_annotation_keypoint(dict_info["person0"])
   ####
   glDisable(GL_TEXTURE_2D)

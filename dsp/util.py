@@ -142,12 +142,12 @@ def cv2_draw_annotation(np_img0,dict_prsn,draw_prop):
   for key in dict_prsn.keys():
     if not key.startswith("seg"): continue
     np_list_loop = my_util.cv2_get_numpy_loop_array(dict_prsn[key])
-    cv2.fillPoly(np_img0a, np_list_loop, color=(0, 0, 255))
+    cv2.fillPoly(np_img0a, np_list_loop, color=draw_prop['seg'][key])
   cv2.addWeighted(np_img0a, 0.2, np_img0, 0.8, 0, np_img0)
   for key in dict_prsn.keys():
     if not key.startswith("seg"): continue
     np_list_loop = my_util.cv2_get_numpy_loop_array(dict_prsn[key])
-    cv2.polylines(np_img0, np_list_loop, True, color=(0, 0, 255), thickness=1)
+    cv2.polylines(np_img0, np_list_loop, True, color=draw_prop['seg'][key], thickness=1)
 
   rad_head = 16
   if "rad_head" in dict_prsn:
