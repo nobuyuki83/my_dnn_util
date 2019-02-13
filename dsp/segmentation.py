@@ -4,28 +4,6 @@ import my_dnn_util.util_torch as my_torch
 import my_dnn_util.util as my_util
 import my_dnn_util.dsp.util as my_dsp
 
-sys.path.append('delfem2/module_py')
-import dfm2
-
-def segmentation_loop_from_map(dict_info0, np_out, mag, list_name_seg):
-  dict_info1 = dict_info0
-  if not "person0" in dict_info1:
-    return dict_info1
-  #####
-  assert len(list_name_seg) == np_out.shape[2]
-  for iseg,name_seg in enumerate(list_name_seg):
-    list_loop = dfm2.get_level_set(np_out[:, :, iseg].copy(), 1.0 / mag)
-    for iloop in range(len(list_loop)):
-      loop_out = dfm2.simplify_polyloop(list_loop[iloop], 3.0)
-      list_loop[iloop] = loop_out
-    for iloop in range(len(list_loop))[::-1]:
-      area = my_util.area_loop(list_loop[iloop]) * mag * mag
-      if abs(area) < 90:
-        del list_loop[iloop]
-    if not name_seg in dict_info1["person0"]:
-      dict_info1["person0"][name_seg] = list_loop
-  return dict_info1
-
 def segmentation_map_from_pose(img_org, dict_info1, list_kp, net_seg):
   if not "person0" in dict_info1:
     return img_org, numpy.zeros((img_org.shape[0],img_org.shape[1],1)), 1.0
@@ -56,10 +34,6 @@ def segmentation_map_from_pose(img_org, dict_info1, list_kp, net_seg):
   np_out = np_out.reshape(np_out.shape[1:])
   np_in_img = np_in_img.reshape(np_in_img.shape[1:])
   return np_in_img, np_out, mag
-
-def segmentation_from_pose(dict_info0,img_org,list_kp_seg,net_seg,list_name_seg):
-  img_seg_in, img_seg_out, mag = segmentation_map_from_pose(img_org, dict_info0, list_kp_seg, net_seg)
-  return segmentation_loop_from_map(dict_info0, img_seg_out, mag, list_name_seg)
 
 ##############################################################################################################
 ## batches for training CNN
@@ -112,10 +86,10 @@ class BatchesPose:
 
   def get_batch_np(self):
     nch_out = len(self.list_name_seg)
-    nch_in_wht = len(self.list_name_kp)
+    nch_in_pose = len(self.list_name_kp)
     size_img = 256
     np_batch_in_img = numpy.empty((0,size_img,size_img,3),dtype=numpy.uint8)
-    np_batch_in_wht = numpy.empty((0,size_img,size_img,nch_in_wht),dtype=numpy.float32)
+    np_batch_in_pose = numpy.empty((0,size_img,size_img,nch_in_pose),dtype=numpy.float32)
     np_batch_tg_seg = numpy.empty((0,size_img,size_img,nch_out),dtype=numpy.float32)
     ####
     for path_json in self.bd.get_batch_path():
@@ -125,16 +99,16 @@ class BatchesPose:
       ####
       np_in_img = cv2.warpAffine(np_img0, rot_mat, (size_img,size_img), flags=cv2.INTER_CUBIC)
       gauss_rad = 0.5*dict_info["person0"]["rad_head"]*scale
-      np_in_wht = my_dsp.input_kp(self.list_name_kp,dict_info,
+      np_in_pose = my_dsp.input_kp(self.list_name_kp,dict_info,
                                   (size_img, size_img), rot_mat, gauss_rad)
       np_tg_seg = my_dsp.input_seg(self.list_name_seg, dict_info,
                                   (size_img,size_img),rot_mat,np_img0.shape[0:2])
       #####
       np_batch_in_img = numpy.vstack((np_batch_in_img,np_in_img.reshape(1,size_img,size_img,3)))
-      np_batch_in_wht = numpy.vstack((np_batch_in_wht,np_in_wht))
+      np_batch_in_pose = numpy.vstack((np_batch_in_pose,np_in_pose))
       np_batch_tg_seg = numpy.vstack((np_batch_tg_seg,np_tg_seg))
     np_batch_in_img = np_batch_in_img.astype(numpy.uint8)
-    return np_batch_in_img, np_batch_in_wht, np_batch_tg_seg
+    return np_batch_in_img, np_batch_in_pose, np_batch_tg_seg
 
   def get_batch_vpt(self,requires_grad=False):
     np_in_img, np_in_wht, np_tg_seg = self.get_batch_np()
