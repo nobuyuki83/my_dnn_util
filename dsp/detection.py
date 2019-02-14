@@ -3,17 +3,18 @@ from my_dnn_util.detection import *
 
 ####################################
 
-def affine_random_head(dict_info,size_input, size_output, target_rad):
+def affine_random_head(dict_info,size_input, size_output, target_rad, pos_offset=128, rot_offset=40):
   dict_prsn = dict_info["person0"]
   scale = target_rad / dict_prsn["rad_head"]
   scale *= random.uniform(0.5, 2.0)
   if 'kp_head' in dict_prsn:
     x0 = dict_prsn["kp_head"][0]
     y0 = dict_prsn["kp_head"][1]
-    cnt = [x0+random.randint(-64,64), y0+random.randint(-64,64)] # x,y
+    cnt = [x0+random.randint(-pos_offset,pos_offset),
+           y0 + random.randint(-pos_offset, pos_offset)]  # x,y
   else:
     cnt = [size_input[0] * 0.5, + size_input[1] * 0.5]
-  rot = random.randint(-40, 40)
+  rot = random.randint(-rot_offset, rot_offset)
   rot_mat = cv2.getRotationMatrix2D(tuple([cnt[0], cnt[1]]), rot, scale)
   rot_mat[0][2] += size_output[0] * 0.5 - cnt[0] + random.randint(int(-8 / scale), int(+8 / scale))
   rot_mat[1][2] += size_output[1] * 0.5 - cnt[1] + random.randint(int(-8 / scale), int(+8 / scale))
@@ -36,14 +37,15 @@ class BatchesHead:
     ####
     for path_json in self.bd.get_batch_path():
       dict_info = json.load(open(path_json, "r"))
-      np_img0 = cv2.imread(my_util.path_img_same_name(path_json))
+      np_bgr0 = cv2.imread(my_util.path_img_same_name(path_json))
+      np_bgr0 = my_util.pca_color_augmentation(np_bgr0)
       rot_mat, scale = affine_random_head(dict_info,
-                                          (np_img0.shape[1], np_img0.shape[0]), (size_img, size_img),
-                                          target_rad=nstride*0.72)
-      np_img1 = cv2.warpAffine(np_img0, rot_mat, (size_img, size_img), flags=cv2.INTER_CUBIC)
+                                          (np_bgr0.shape[1], np_bgr0.shape[0]), (size_img, size_img),
+                                          target_rad=nstride*0.72, pos_offset=128, rot_offset=40)
+      np_bgr1 = cv2.warpAffine(np_bgr0, rot_mat, (size_img, size_img), flags=cv2.INTER_CUBIC)
       np_tgc, np_tgl, np_msk = my_dsp.input_detect("kp_head",dict_info,nblk,nstride,rot_mat,scale)
       ####
-      np_batch_in = numpy.vstack((np_batch_in, np_img1.reshape(1, size_img, size_img, 3)))
+      np_batch_in = numpy.vstack((np_batch_in, np_bgr1.reshape(1, size_img, size_img, 3)))
       np_batch_tgc = numpy.vstack((np_batch_tgc, np_tgc))
       np_batch_tgl = numpy.vstack((np_batch_tgl, np_tgl))
       np_batch_msk = numpy.vstack((np_batch_msk, np_msk))
