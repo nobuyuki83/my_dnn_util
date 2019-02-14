@@ -15,11 +15,11 @@ class NetDiscriminator(torch.nn.Module):
     self.path_file = path_file
     self.nstride = 32
     self.layer = torch.nn.Sequential(
-      my_torch.ModuleCBR_k4s2(  3,  64, is_leaky=True, bn=False),  # 1/2
-      my_torch.ModuleCBR_k4s2( 64, 128, is_leaky=True), # 1/4
-      my_torch.ModuleCBR_k4s2(128, 256, is_leaky=True), # 1/8
-      my_torch.ModuleCBR_k4s2(256, 512, is_leaky=True), # 1/16
-      my_torch.ModuleCBR_k4s2(512, 512, is_leaky=True),  # 1/32
+      my_torch.ModuleCBR_Half_k4s2(  3,  64, is_leaky=True, bn=False),  # 1/2
+      my_torch.ModuleCBR_Half_k4s2( 64, 128, is_leaky=True), # 1/4
+      my_torch.ModuleCBR_Half_k4s2(128, 256, is_leaky=True), # 1/8
+      my_torch.ModuleCBR_Half_k4s2(256, 512, is_leaky=True), # 1/16
+      my_torch.ModuleCBR_Half_k4s2(512, 512, is_leaky=True),  # 1/32
       torch.nn.Conv2d(512, 1, kernel_size=1, padding=0, stride=1)
     )
     my_torch.initialize_net(self)

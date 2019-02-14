@@ -95,6 +95,7 @@ class BatchesPose:
     for path_json in self.bd.get_batch_path():
       dict_info = json.load(open(path_json,"r") )
       np_img0 = cv2.imread(my_util.path_img_same_name(path_json))
+      np_img0 = my_util.pca_color_augmentation(np_img0)
       rot_mat,scale = my_dsp.get_affine(dict_info,(np_img0.shape[1],np_img0.shape[0]),(size_img,size_img))
       ####
       np_in_img = cv2.warpAffine(np_img0, rot_mat, (size_img,size_img), flags=cv2.INTER_CUBIC)
