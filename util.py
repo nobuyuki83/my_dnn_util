@@ -1,5 +1,5 @@
 import cv2, math, hashlib, os, numpy, argparse, json, time, random
-import torch
+#import torch
 from scipy.ndimage.filters import maximum_filter
 
 def md5_hash(path):
@@ -36,6 +36,25 @@ def gauss_keypoint(np0, idim, cx0,cy0,r0):
   h0 = h0.reshape((nh,1))
   np0[:,:,idim] = numpy.exp(-((w0-cx0)**2+(h0-cy0)**2)/(r0*r0))
 
+
+def pca_color_augmentation(np_bgr_in):
+  assert np_bgr_in.ndim == 3 and np_bgr_in.shape[2] == 3
+  assert np_bgr_in.dtype == numpy.uint8
+
+  img = np_bgr_in.reshape(-1, 3).astype(numpy.float32)
+  img = (img - numpy.mean(img, axis=0)) / numpy.std(img, axis=0)
+
+  cov = numpy.cov(img, rowvar=False)
+  lambd_eigen_value, p_eigen_vector = numpy.linalg.eig(cov)
+
+  rand = numpy.random.randn(3) * 0.1
+  delta = numpy.dot(p_eigen_vector, rand * lambd_eigen_value)
+  delta = (delta * 255.0).astype(numpy.int32)[numpy.newaxis, numpy.newaxis, :]
+
+  np_bgr_out = numpy.clip(np_bgr_in + delta, 0, 255).astype(numpy.uint8)
+  return np_bgr_out
+
+
 def get_random_polygon(x0,y0,rad):
   ndiv = random.randint(3,7)
   delrad = math.pi*2.0/ndiv
@@ -47,6 +66,8 @@ def get_random_polygon(x0,y0,rad):
     list_loop.append(x0+x1)
     list_loop.append(y0+y1)
   return list_loop
+
+
 
 class BatchDispenser:
   def __init__(self, nbatch:int, list_path_in:list):
@@ -334,4 +355,3 @@ def get_segmentation_color_img(np_out0,
     np_res0[:, :, 2] = np_res0[:, :, 2] * (1 - mask_bra)
   np_res0 = numpy.clip(np_res0, 0.0, 255.0).astype(numpy.uint8)
   return np_res0
-
