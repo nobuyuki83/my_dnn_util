@@ -136,7 +136,7 @@ def input_detect(key,dict_info,nblk,nstride,rot_mat,scale):
 #############################################################################################################################
 
 
-def cv2_draw_annotation(np_img0,dict_prsn,draw_prop):
+def cv2_draw_annotation(np_img0,dict_prsn:dict,draw_prop:dict):
 
   np_img0a = np_img0.copy()
   for key in dict_prsn.keys():

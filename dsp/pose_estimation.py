@@ -9,7 +9,7 @@ def update_dict_info_from_heatmap(dict_info0:dict,
                                   face_rad,
                                   list_key_name,
                                   mag,
-                                  thres=0.3):
+                                  thres=0.3) -> dict:
   assert np_heatmap.shape[2] == len(list_key_name)
   list_pos_key = my_util.get_peaks(list_key_name, np_heatmap, mag, thres=thres)
   dict_info1 = dict_info0
@@ -47,7 +47,7 @@ def pose_detection_from_scratch(np_img,dict_info0,face_rad,list_key_name,net_cpm
 def pose_detection_from_head(dict_info0:dict,
                               np_img,
                               list_key_name:list,
-                              net_cpm_head,thres=0.3):
+                              net_cpm_head,thres=0.3) -> dict:
   if not "person0" in dict_info0:
     return dict_info0
   if not "rad_head" in dict_info0["person0"]:
@@ -142,12 +142,13 @@ class BatchesHead:
     nblk = size_img // nstride
     nch_out = len(list_key)
     np_batch_in_img = numpy.empty((0,size_img,size_img,3),dtype=numpy.uint8)
-    np_batch_in_wht = numpy.empty((0, size_img, size_img, 1), dtype=numpy.float32)
-    np_batch_tg_wht = numpy.empty((0,nblk,nblk,nch_out),dtype=numpy.float32)
+    np_batch_in_pose = numpy.empty((0, size_img, size_img, 1), dtype=numpy.float32)
+    np_batch_tg_pose = numpy.empty((0,nblk,nblk,nch_out),dtype=numpy.float32)
     ####
     for path_json in self.bd.get_batch_path():
       dict_info = json.load(open(path_json,"r"))
       np_img_org = cv2.imread(my_util.path_img_same_name(path_json))
+      np_img_org = my_util.pca_color_augmentation(np_img_org)
       ####
       rot_mat,scale = my_dsp.get_affine(dict_info,
                                         (np_img_org.shape[1], np_img_org.shape[0]),
@@ -162,19 +163,19 @@ class BatchesHead:
         dict_info1["person0"]["kp_head"][0] += random.randint(-8,8)
         dict_info1["person0"]["kp_head"][1] += random.randint(-8,8)
       gauss_rad1 = gauss_rad*random.uniform(0.9,1.1)
-      np_in_wht = my_dsp.input_kp(["kp_head"],dict_info1,(size_img,size_img),
+      np_in_pose = my_dsp.input_kp(["kp_head"],dict_info1,(size_img,size_img),
                                 rot_mat,
                                 gauss_rad1)
       ####
-      np_out_wht = my_dsp.input_kp(list_key,dict_info,(size_img,size_img),
+      np_out_pose = my_dsp.input_kp(list_key,dict_info,(size_img,size_img),
                                 rot_mat,
                                 gauss_rad)
-      np_out_wht = np_out_wht[:,::nstride,::nstride,:]
+      np_out_pose = np_out_pose[:,::nstride,::nstride,:]
       ####
-      np_batch_tg_wht = numpy.vstack((np_batch_tg_wht,np_out_wht.reshape(1,nblk,nblk,nch_out)))
-      np_batch_in_wht = numpy.vstack((np_batch_in_wht,np_in_wht.reshape(1,size_img,size_img,1)))
+      np_batch_tg_pose = numpy.vstack((np_batch_tg_pose,np_out_pose.reshape(1,nblk,nblk,nch_out)))
+      np_batch_in_pose = numpy.vstack((np_batch_in_pose,np_in_pose.reshape(1,size_img,size_img,1)))
       np_batch_in_img = numpy.vstack((np_batch_in_img,np_in_img.reshape(1,size_img,size_img,3)))
-    return np_batch_in_img, np_batch_in_wht, np_batch_tg_wht
+    return np_batch_in_img, np_batch_in_pose, np_batch_tg_pose
 
   def get_batch_vpt(self, list_key:list, nstride:int, requires_grad:bool):
     np_in_img, np_in_wht, np_tg_wht = self.get_batch_np(list_key, nstride)

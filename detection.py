@@ -262,7 +262,7 @@ def detect(img_in,net_detect,mag:int,prob_thre):
   return list_out
 
 
-def detect_multires(img_bgr,net_detect):
+def detect_multires(img_bgr,net_detect) -> list:
   net_detect.eval()
   list_out = [] # px,py,rad,mag,prob1a
   ####
