@@ -56,13 +56,13 @@ def pca_color_augmentation(np_bgr_in):
 
 
 def get_random_polygon(x0,y0,rad):
-  ndiv = random.randint(3,7)
+  ndiv = random.randint(3,6)
   delrad = math.pi*2.0/ndiv
   list_loop = []
   for idiv in range(ndiv):
     r1 = rad*random.uniform(1.0,2.0)
-    x1 = r1*math.cos(delrad*idiv)
-    y1 = r1*math.sin(delrad*idiv)
+    x1 = r1*math.cos(delrad*(idiv+random.uniform(0.2,0.8)))
+    y1 = r1*math.sin(delrad*(idiv+random.uniform(0.2,0.8)))
     list_loop.append(x0+x1)
     list_loop.append(y0+y1)
   return list_loop
