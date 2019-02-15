@@ -116,7 +116,7 @@ def train_gan(net_gen1, net_dis1, net_vgg, batches_G, batches_D,
       torch.save(net_dis1.state_dict(), net_dis1.path_file+str(itr))
 
     if itr % 10 == 0:
-      batches_G.write_grid_img(net_gen1,batches_G,"out_"+str(itr)+".png")
+      write_grid_img(net_gen1,batches_G,"out_"+str(itr)+".png")
 
 
 def train_D_initial(net_gen1, net_dis1,
@@ -153,4 +153,4 @@ def train_G_perceptual(net_gen1, net_vgg, batches, step_size=1.0e-4, nitr=1000):
       torch.save(net_gen1.state_dict(), net_gen1.path_file)
 
     if itr % 10 == 0:
-      batches.write_grid_img(net_gen1,batches,"out_"+str(itr)+".png")
+      write_grid_img(net_gen1,batches,"out_"+str(itr)+".png")
