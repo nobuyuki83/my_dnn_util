@@ -12,6 +12,7 @@ class NetDiscriminator(torch.nn.Module):
     super(NetDiscriminator, self).__init__()
     self.path_file = path_file
     self.nstride = 32
+    self.npix = 32
     self.layer = torch.nn.Sequential(
       my_torch.ModuleCBR_Half_k4s2( nch_in,  64, is_leaky=True, bn=False),  # 1/2
       my_torch.ModuleCBR_Half_k4s2( 64, 128, is_leaky=True), # 1/4

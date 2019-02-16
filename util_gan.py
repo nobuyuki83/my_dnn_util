@@ -99,7 +99,7 @@ def train_gan(net_gen1, net_dis1, net_vgg, batches_G, batches_D,
 
   optimizer_D = torch.optim.Adam(net_dis1.parameters(), lr=step_size_D, betas=(0.9,0.999))
   optimizer_G = torch.optim.Adam(net_gen1.parameters(), lr=step_size_G, betas=(0.9,0.999))
-  optimizer_P = torch.optim.Adam(net_gen1.parameters(), lr=2.0e-5)
+  optimizer_P = torch.optim.Adam(net_gen1.parameters(), lr=1.0e-5)
 
 #  criterion_DG = torch.nn.BCELoss()
   criterion_DG = torch.nn.MSELoss()
