@@ -238,19 +238,4 @@ def gl_draw_annotation_bbox(dict_info):
   if 'bbox' in dict_info:
     my_gl.drawRect(dict_info["bbox"],color=(255,0,0),width=1)
 
-def gl_draw_annotation_segmentation(dict_info,selected_loop:int,name_seg:str):
-  if name_seg in dict_info:
-    for iloop,loop in enumerate(dict_info[name_seg]):
-      my_gl.drawPolyline(loop,color=(1,1,1),width=1)
-      if iloop == selected_loop:
-        glColor3d(1.0,0.0,0.0)
-      else:
-        glColor3d(0.0,0.0,1.0)
-      glPointSize(4)
-      glBegin(GL_POINTS)
-      for ip in range(len(loop)//2):
-        x = loop[ip*2+0]
-        y = loop[ip*2+1]
-        glVertex2d(x,-y)
-      glEnd()
 
