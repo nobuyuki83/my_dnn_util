@@ -249,3 +249,21 @@ def glut_move_segmentationloop(button,name_seg,iloop_selected,ivtx_selected,dict
         if ivtx_selected >= 0 and ivtx_selected * 2 < len(loop):
           loop[ivtx_selected * 2 + 0] = xy[0]
           loop[ivtx_selected * 2 + 1] = xy[1]
+
+def glut_add_point_segmentation_loops(state,name_seg,dict_info,xy1):
+  if state == glut.GLUT_DOWN:
+    if not name_seg in dict_info:
+      dict_info[name_seg] = [[]]
+    iloop = len(dict_info[name_seg]) - 1
+    dict_info[name_seg][iloop].extend([int(xy1[0]), int(xy1[1])])
+
+def clean_loop(name_seg,dict_info):
+  if name_seg in dict_info:
+    list_loop = dict_info[name_seg]
+    list_loop_new = []
+    for loop in list_loop:
+      if len(loop) == 0:
+        print("deleting new loop")
+      else:
+        list_loop_new.append(loop)
+    dict_info[name_seg] = list_loop_new
