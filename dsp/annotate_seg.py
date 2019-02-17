@@ -13,7 +13,7 @@ ind_list_path_json = 0
 img_size_info = (250, 250, 1.0, 1.0, -1)
 dict_info = {}
 mode_prsn = "person0"
-list_name_seg = None
+list_name_seg = []
 ind_name_seg = 0
 mode_edit = ""
 iloop_selected = -1
@@ -57,7 +57,7 @@ def display():
   my_gl.set_view_trans(img_size_info)
   my_gl.draw_img(img_size_info)
   my_dsp.gl_draw_annotation_bbox(dict_info["person0"])
-  my_dsp.gl_draw_annotation_segmentation(dict_info["person0"],
+  my_gl.draw_segmentation_loops(dict_info["person0"],
                                      selected_loop=iloop_selected,
                                      name_seg=name_seg)
 #  my_dsp.gl_draw_keypoint_circle(dict_info["person0"], 1.0, (255, 0, 0), 2, "kp_head")
@@ -116,15 +116,7 @@ def keyboard(bkey, x, y):
         else:
           iloop_selected = (iloop_selected+nloop-1)%nloop
   if key == 's':
-    if name_seg in dict_info["person0"]:
-      list_loop = dict_info["person0"][name_seg]
-      list_loop_new = []
-      for loop in list_loop:
-        if len(loop) == 0:
-          print("deleting new loop")
-        else:
-          list_loop_new.append(loop)
-      dict_info["person0"][name_seg] = list_loop_new
+    my_gl.clean_loop(name_seg,dict_info['person0'])
     dict_info["saved_time"] = time.time()
     path_json = list_path_json[ind_list_path_json]
     with open(path_json,"w") as file0:
@@ -141,32 +133,9 @@ def mouse(button, state, x, y):
     if state == GLUT_DOWN:
       dict_info[mode_prsn]['bbox'] = [xy1[0], xy1[1], 5, 5]
   if mode_edit == 'loop':
-    if state == GLUT_DOWN:
-      if not name_seg in dict_info[mode_prsn]:
-        dict_info[mode_prsn][name_seg] = [[]]
-      iloop= len(dict_info[mode_prsn][name_seg]) - 1
-      dict_info[mode_prsn][name_seg][iloop].extend([int(xy1[0]), int(xy1[1])])
+    my_gl.glut_add_point_segmentation_loops(state,name_seg,dict_info['person0'],xy1)
   if mode_edit == 'move_delete_add':
-    if state == GLUT_DOWN:
-      if button==GLUT_LEFT_BUTTON:
-        iloop_selected, ivtx_selected = my_util.pick_loop_vertex(xy1, name_seg, dict_info[mode_prsn])
-        print(iloop_selected, ivtx_selected)
-      if button==GLUT_MIDDLE_BUTTON:
-        iloop_selected, ivtx_selected = my_util.pick_loop_vertex(xy1, name_seg, dict_info[mode_prsn])
-        print(iloop_selected, ivtx_selected)
-        if not ivtx_selected == -1:
-          loop = dict_info[mode_prsn][name_seg][iloop_selected]
-          loop.pop(ivtx_selected*2+1)
-          loop.pop(ivtx_selected*2+0)
-          ivtx_selected = -1
-      elif button == GLUT_RIGHT_BUTTON:
-        iloop_selected, ivtx_selected, xy3 = my_util.pick_loop_edge(xy1, name_seg, dict_info[mode_prsn])
-        if not ivtx_selected == -1:
-          loop = dict_info[mode_prsn][name_seg][iloop_selected]
-          loop.insert(ivtx_selected*2+0,xy1[0])
-          loop.insert(ivtx_selected*2+1,xy1[1])
-    elif state == GLUT_UP:
-      ivtx_selected = -1
+    iloop_selected,ivtx_selected = my_gl.glut_edit_segmentationloops(state,button,xy1,name_seg,dict_info['person0'])
   glutPostRedisplay()
 
 def motion(x, y):
@@ -176,13 +145,7 @@ def motion(x, y):
     dict_info[mode_prsn]["bbox"][2] = abs(xy[0] - dict_info[mode_prsn]["bbox"][0])
     dict_info[mode_prsn]["bbox"][3] = abs(xy[1] - dict_info[mode_prsn]["bbox"][1])
   if mode_edit == 'move_delete_add':
-    if mouse_button == GLUT_LEFT_BUTTON:
-      if name_seg in dict_info[mode_prsn]:
-        if iloop_selected >= 0 and iloop_selected<len(dict_info[mode_prsn][name_seg]):
-          loop = dict_info[mode_prsn][name_seg][iloop_selected]
-          if ivtx_selected>=0 and ivtx_selected*2<len(loop):
-            loop[ivtx_selected*2+0] = xy[0]
-            loop[ivtx_selected*2+1] = xy[1]
+    my_gl.glut_move_segmentationloop(mouse_button,name_seg,iloop_selected,ivtx_selected,dict_info["person0"],xy)
   glutPostRedisplay()
 
 def mySpecialFunc(key,x,y):

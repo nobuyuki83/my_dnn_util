@@ -105,6 +105,7 @@ class ModuleCBR_Double_k4s2(torch.nn.Module):
     return self.model(x)
 
 
+
 class ModuleCBR_ResAdd(torch.nn.Module):
   def __init__(self, nc):
     super(ModuleCBR_ResAdd, self).__init__()
@@ -122,7 +123,7 @@ class ModuleCBR_ResAdd(torch.nn.Module):
     return x+self.model(x)
 
 
-###################################################
+###############################################################################################################3
 
 class ModuleBRC_k1(torch.nn.Module):
   def __init__(self, nc_in, nc_out, bn=True, af='relu'):
@@ -379,10 +380,10 @@ class ModuleBRC_Double_k4s2(torch.nn.Module):
     return self.model(x)
 
 
-class ResUnit_BRC_ResDouble(torch.nn.Module):
-  def __init__(self, nc_in,nc_out,is_separable=False):
-    super(ResUnit_BRC_ResDouble, self).__init__()
-    ngroup = nc_out if is_separable else 1
+class ModuleBRC_Double_ResAdd(torch.nn.Module):
+  def __init__(self, nc_in,nc_out,nc_in_group=-1):
+    super(ModuleBRC_Double_ResAdd, self).__init__()
+    ngroup = 1 if nc_in_group<=0 else nc_out//nc_in_group
     self.bn1 = torch.nn.BatchNorm2d(nc_in)
     self.conv1 = torch.nn.ConvTranspose2d(nc_in, nc_out, kernel_size=1, padding=0, stride=1)
     ###
