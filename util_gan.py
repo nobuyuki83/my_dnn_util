@@ -105,12 +105,12 @@ def train_gan(net_gen1, net_dis1, net_vgg, batches_G, batches_D,
   criterion_DG = torch.nn.MSELoss()
 
   for itr in range(nitr):
-    for itr_D in range(1):
+    for itr_D in range(2):
       optD(net_gen1, net_dis1, batches_D, criterion_DG, optimizer_D, itr*1+itr_D)
     optG_adv(net_gen1, net_dis1, batches_G, criterion_DG, optimizer_G, itr)
     optG_pcp(net_gen1, net_vgg, batches_G, optimizer_P, itr)
 
-    if itr % 40 == 39:
+    if itr % 100 == 99:
       print("save_model dis gen")
       torch.save(net_gen1.state_dict(), net_gen1.path_file+str(itr))
       torch.save(net_dis1.state_dict(), net_dis1.path_file+str(itr))
