@@ -12,18 +12,17 @@ def update_dict_info_from_heatmap(dict_info0:dict,
                                   thres=0.3) -> dict:
   assert np_heatmap.shape[2] == len(list_key_name)
   list_pos_key = my_util.get_peaks(list_key_name, np_heatmap, mag, thres=thres)
-  dict_info1 = dict_info0
-  if not "person0" in dict_info1:
-    dict_info1['person0'] = {}
-  if not "rad_head" in dict_info1["person0"]:
-    dict_info1['person0']['rad_head'] = face_rad
+  if not "person0" in dict_info0:
+    dict_info0['person0'] = {}
+  if not "rad_head" in dict_info0["person0"]:
+    dict_info0['person0']['rad_head'] = face_rad
   for ipos, pos in enumerate(list_pos_key):
     if not list_pos_key[ipos][2] is 2:
       continue
     key_name = list_key_name[ipos]
-    if not key_name in dict_info1["person0"]:
-      dict_info1['person0'][key_name] = list_pos_key[ipos]
-  return dict_info1
+    if not key_name in dict_info0["person0"]:
+      dict_info0['person0'][key_name] = list_pos_key[ipos]
+  return dict_info0
 
 
 def pose_detection_from_scratch(np_img,dict_info0,face_rad,list_key_name,net_cpm_scratch):
@@ -82,7 +81,7 @@ def pose_detection_from_head(dict_info0:dict,
                                               dict_info0["person0"]['rad_head'],
                                               list_key_name, mag,
                                               thres=thres)
-  return dict_info1
+  return dict_info0
 
 
 ##############################################################################################################

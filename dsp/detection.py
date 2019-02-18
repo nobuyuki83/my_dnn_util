@@ -75,7 +75,7 @@ def detect_head(dict_info0, img_bgr, net_detect):
 
   list_res = detect_multires(img_bgr,net_detect)
   if len(list_res) == 0:
-    return {}
+    return dict_info0
   dict_info0["person0"] = {}
   dict_info0["person0"]["rad_head"] = list_res[2]
   dict_info0["person0"]["kp_head"] = [list_res[0], list_res[1], 2]
