@@ -1,5 +1,6 @@
 import os
 import torch
+import torch.nn as nn
 import torch.nn.functional
 import torch.utils.model_zoo as model_zoo
 from torchvision import transforms
@@ -12,10 +13,6 @@ import my_dnn_util.util_torch as my_torch
 
 ##############################################################################################
 
-
-###########################################################################################################################
-###########################################################################################################################
-###########################################################################################################################
 
 class Net_VGG16(torch.nn.Module):
   def __init__(self,model_dir):
@@ -111,3 +108,4 @@ class Net_VGG16(torch.nn.Module):
     l2 = torch.nn.functional.mse_loss(x0[2],y0[2])
 #    return l0+l1+l2
     return l2
+

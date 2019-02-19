@@ -247,6 +247,7 @@ def view_batch(np_in, np_tg, nstride, ratio=0.5):
 
 ##################################################################################################
 
+'''
 def get_segmentation_map(net_seg, np_img, mag):
   npix = net_seg.npix
   net_seg.eval()
@@ -259,7 +260,7 @@ def get_segmentation_map(net_seg, np_img, mag):
     pt_out0 = net_seg.forward(pt_in)
   np_out0 = numpy.moveaxis(pt_out0.data.numpy(), 1, 3)
   return np_in,np_out0
-
+'''
 
 def get_peaks(list_key,np_out0,mag,thres=0.3):
   pos_key = [[0, 0, 0]] * len(list_key)
@@ -280,6 +281,7 @@ def get_peaks(list_key,np_out0,mag,thres=0.3):
   return pos_key
 
 
+'''
 def get_segmentation_color_img(np_out0,
                               np_in0,
                               nstride:int):
@@ -303,3 +305,4 @@ def get_segmentation_color_img(np_out0,
     np_res0[:, :, 2] = np_res0[:, :, 2] * (1 - mask_bra)
   np_res0 = numpy.clip(np_res0, 0.0, 255.0).astype(numpy.uint8)
   return np_res0
+'''
