@@ -36,7 +36,7 @@ def initialize_net(net):
       m.weight.data.fill_(1)
       m.bias.data.zero_()
 
-def get_mask_ratio_vpt(x0:torch.autograd.Variable):
+def get_mask_ratio_vpt(x0:torch.autograd.Variable,scale=1.0):
   nblk = x0.shape[2] // 32
   nbatch = x0.shape[0]
   out = torch.autograd.Variable(torch.zeros((nbatch,1,nblk,nblk)),requires_grad=False)
@@ -44,7 +44,10 @@ def get_mask_ratio_vpt(x0:torch.autograd.Variable):
     for i in range(nblk):
       for j in range(nblk):
         crop = x0[ib][:,i*32:(i+1)*32,j*32:(j+1)*32]
-        out[ib][0][i][j] = 1-crop.mean()
+        out[ib][0][i][j] = crop.mean()
+  out = out*scale
+  out = torch.clamp(out,0.0,1.0)
+  out = 1-out
   return out
 
 

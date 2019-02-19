@@ -1,6 +1,7 @@
 import sys
 import my_dnn_util.dsp.segmentation as my_seg
 import my_dnn_util as my_util
+import my_dnn_util.util_gl as my_gl
 
 sys.path.append('delfem2/module_py')
 import dfm2
@@ -17,7 +18,7 @@ def segmentation_loop_from_map(dict_info0, np_out, mag, list_name_seg):
       loop_out = dfm2.simplify_polyloop(list_loop[iloop], 3.0)
       list_loop[iloop] = loop_out
     for iloop in range(len(list_loop))[::-1]:
-      area = my_util.area_loop(list_loop[iloop]) * mag * mag
+      area = my_gl.area_loop(list_loop[iloop]) * mag * mag
       if abs(area) < 90:
         del list_loop[iloop]
     if not name_seg in dict_info1["person0"]:

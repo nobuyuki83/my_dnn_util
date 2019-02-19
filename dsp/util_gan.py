@@ -142,7 +142,7 @@ class Batches_MaskKp_InSegKp:
   def get_batch_vpt_realfake(self,net_gen, requires_grad_fake=False):
     vpt_bgr_real, vpt_mask, vpt_seg, vpt_kp  = self.get_batch_vpt_real(net_gen.nstride)
     vpt_bgr_masked = vpt_bgr_real * (1 - vpt_mask)
-    vpt_in = torch.cat((vpt_bgr_masked, vpt_mask, vpt_seg), 1)
+    vpt_in = torch.cat((vpt_bgr_masked, vpt_mask, vpt_kp), 1)
     if requires_grad_fake:
       vpt_in.requires_grad = True
       vpt_out0 = net_gen.forward(vpt_in)
@@ -156,7 +156,7 @@ class Batches_MaskKp_InSegKp:
 #    vpt_out_fake = torch.cat((vpt_bgr_fake,vpt_seg,vpt_kp),dim=1)
     vpt_out_real = torch.cat((vpt_bgr_real,vpt_kp),dim=1)
     vpt_out_fake = torch.cat((vpt_bgr_fake,vpt_kp),dim=1)
-    vpt_tg_fake = my_torch.get_mask_ratio_vpt(vpt_mask)
+    vpt_tg_fake = my_torch.get_mask_ratio_vpt(vpt_mask,scale=5.0)
     if torch.cuda.is_available():
       vpt_tg_fake = vpt_tg_fake.cuda()
     return vpt_out_real,vpt_out_fake,vpt_tg_fake
