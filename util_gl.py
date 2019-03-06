@@ -2,7 +2,6 @@ from OpenGL.GL import *
 import OpenGL.GLUT as glut
 import cv2, math
 
-
 def pick_loop_vertex(xy1:list,key:str,dict_prsn:dict):
   iloop_selected = -1
   ivtx_selected = -1

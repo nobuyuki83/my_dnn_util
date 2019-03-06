@@ -1,6 +1,4 @@
-import cv2, numpy, json, time, random, math
-from OpenGL.GL import *
-from OpenGL.GLUT import *
+import cv2, numpy, json, time, random, math, os
 import my_dnn_util.util_gl as my_gl
 import my_dnn_util.util as my_util
 
